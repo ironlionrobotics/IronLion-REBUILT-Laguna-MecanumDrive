@@ -17,6 +17,7 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.Constants.*;
 import frc.robot.Subsystems.DriveSubsystem;
 import frc.robot.Subsystems.IntakeSubsystem;
+import frc.robot.Subsystems.ShooterSubsystem;
 
 public class Robot extends TimedRobot {
 
@@ -92,6 +93,17 @@ public class Robot extends TimedRobot {
      */
     @Override
     public void teleopPeriodic() {
+        if (DriveSubsystem.m_joystick.getAButtonPressed()) {
+            ShooterSubsystem.m_NEOshooter.set(1);
+        } else if (DriveSubsystem.m_joystick.getAButtonReleased()){
+            ShooterSubsystem.m_NEOshooter.set(0);
+        } else if (DriveSubsystem.m_joystick.getLeftBumperButtonPressed()) {
+            ShooterSubsystem.m_NEObeltIndexer.set(1);
+            ShooterSubsystem.m_NEOfeeder.set(1);
+        } else if (DriveSubsystem.m_joystick.getLeftBumperButtonReleased()) {
+            ShooterSubsystem.m_NEObeltIndexer.set(0);
+            ShooterSubsystem.m_NEOfeeder.set(0);
+        }
     //              
     //              double avanzar = -DriveSubsystem.m_joystick.getLeftY(); 
     //              // 
