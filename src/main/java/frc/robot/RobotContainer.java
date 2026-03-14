@@ -49,24 +49,25 @@ public class RobotContainer {
                 m_DriveSubsystem
             )
         );
-        configureBindings();
+        //TODO: UNCOMMENT CONFIGURE BINDINGS
+       // configureBindings();
     }
 
-    private void configureBindings() {
-        new JoystickButton(m_driverController, XboxController.Button.kA.value)
-            .whileTrue(m_DriveSubsystem.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
+   //private void configureBindings() {
+   //    new JoystickButton(m_driverController, XboxController.Button.kA.value)
+   //        .whileTrue(m_DriveSubsystem.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
 
-        // Botón B: Dynamic Forward (Salto brusco hacia adelante) -> Para calcular kA
-        new JoystickButton(m_driverController, XboxController.Button.kB.value)
-            .whileTrue(m_DriveSubsystem.sysIdDynamic(SysIdRoutine.Direction.kForward));
-        // Botón X: Quasistatic Reverse (Rampa suave hacia atrás)
-        new JoystickButton(m_driverController, XboxController.Button.kX.value)
-            .whileTrue(m_DriveSubsystem.sysIdQuasistatic(SysIdRoutine.Direction.kReverse));
+   //    // Botón B: Dynamic Forward (Salto brusco hacia adelante) -> Para calcular kA
+   //    new JoystickButton(m_driverController, XboxController.Button.kB.value)
+   //        .whileTrue(m_DriveSubsystem.sysIdDynamic(SysIdRoutine.Direction.kForward));
+   //    // Botón X: Quasistatic Reverse (Rampa suave hacia atrás)
+   //    new JoystickButton(m_driverController, XboxController.Button.kX.value)
+   //        .whileTrue(m_DriveSubsystem.sysIdQuasistatic(SysIdRoutine.Direction.kReverse));
 
-        // Botón Y: Dynamic Reverse (Salto brusco hacia atrás)
-        new JoystickButton(m_driverController, XboxController.Button.kY.value)
-            .whileTrue(m_DriveSubsystem.sysIdDynamic(SysIdRoutine.Direction.kReverse));
-    }
+   //    // Botón Y: Dynamic Reverse (Salto brusco hacia atrás)
+   //    new JoystickButton(m_driverController, XboxController.Button.kY.value)
+   //        .whileTrue(m_DriveSubsystem.sysIdDynamic(SysIdRoutine.Direction.kReverse));
+   //}
 
     public Command getAutonomousCommand() {
 

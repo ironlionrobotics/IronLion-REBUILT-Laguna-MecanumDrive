@@ -234,43 +234,43 @@ public class DriveSubsystem extends SubsystemBase  {
         e.printStackTrace();
       }
     }
-
-  private final SysIdRoutine m_sysIdRoutine = new SysIdRoutine(
-    new SysIdRoutine.Config(),
-    new SysIdRoutine.Mechanism(
-        // EXPLICACIÓN: Recibe un objeto 'volts' y le extraemos el valor numérico
-        (Voltage volts) -> {
-            double v = volts.in(edu.wpi.first.units.Units.Volts);
-            m_frontLeft.setVoltage(v);
-            m_frontRight.setVoltage(v);
-            m_rearLeft.setVoltage(v);
-            m_rearRight.setVoltage(v);
-        },
-        // EXPLICACIÓN: Guardamos los datos de rendimiento del motor
-        log -> {
-            // Log para el lado izquierdo (puedes agruparlos así)
-            log.motor("drive-left")
-                .voltage(Volts.of(m_frontLeft.getBusVoltage() * m_frontLeft.getAppliedOutput()))
-                .linearPosition(Meters.of(m_frontLeft.getEncoder().getPosition() * DriveConstants.conversionFactor))
-                .linearVelocity(MetersPerSecond.of(m_frontLeft.getEncoder().getVelocity() * (DriveConstants.conversionFactor / 60.0)));
-            
-            // Log para el lado derecho
-            log.motor("drive-right")
-                .voltage(Volts.of(m_frontRight.getBusVoltage() * m_frontRight.getAppliedOutput()))
-                .linearPosition(Meters.of(m_frontRight.getEncoder().getPosition() * DriveConstants.conversionFactor))
-                .linearVelocity(MetersPerSecond.of(m_frontRight.getEncoder().getVelocity() * (DriveConstants.conversionFactor / 60.0)));
-        },
-        this
-    )
-  );
-
-  public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
-      return m_sysIdRoutine.quasistatic(direction);
-  }
-
-  public Command sysIdDynamic(SysIdRoutine.Direction direction) {
-      return m_sysIdRoutine.dynamic(direction);
-  }
+//TODO: UNCOMMENT SYSID
+  //private final SysIdRoutine m_sysIdRoutine = new SysIdRoutine(
+  //  new SysIdRoutine.Config(),
+  //  new SysIdRoutine.Mechanism(
+  //      // EXPLICACIÓN: Recibe un objeto 'volts' y le extraemos el valor numérico
+  //      (Voltage volts) -> {
+  //          double v = volts.in(edu.wpi.first.units.Units.Volts);
+  //          m_frontLeft.setVoltage(v);
+  //          m_frontRight.setVoltage(v);
+  //          m_rearLeft.setVoltage(v);
+  //          m_rearRight.setVoltage(v);
+  //      },
+  //      // EXPLICACIÓN: Guardamos los datos de rendimiento del motor
+  //      log -> {
+  //          // Log para el lado izquierdo (puedes agruparlos así)
+  //          log.motor("drive-left")
+  //              .voltage(Volts.of(m_frontLeft.getBusVoltage() * m_frontLeft.getAppliedOutput()))
+  //              .linearPosition(Meters.of(m_frontLeft.getEncoder().getPosition() * DriveConstants.conversionFactor))
+  //              .linearVelocity(MetersPerSecond.of(m_frontLeft.getEncoder().getVelocity() * (DriveConstants.conversionFactor / 60.0)));
+  //          
+  //          // Log para el lado derecho
+  //          log.motor("drive-right")
+  //              .voltage(Volts.of(m_frontRight.getBusVoltage() * m_frontRight.getAppliedOutput()))
+  //              .linearPosition(Meters.of(m_frontRight.getEncoder().getPosition() * DriveConstants.conversionFactor))
+  //              .linearVelocity(MetersPerSecond.of(m_frontRight.getEncoder().getVelocity() * (DriveConstants.conversionFactor / 60.0)));
+  //      },
+  //      this
+  //  )
+  //);
+//
+  //public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
+  //    return m_sysIdRoutine.quasistatic(direction);
+  //}
+//
+  //public Command sysIdDynamic(SysIdRoutine.Direction direction) {
+  //    return m_sysIdRoutine.dynamic(direction);
+  //}
 
   @Override
   public void periodic() {

@@ -4,12 +4,14 @@
 
 package frc.robot;
 
+import com.ctre.phoenix6.SignalLogger;
 import com.pathplanner.lib.commands.FollowPathCommand;
 import com.revrobotics.PersistMode;
 import com.revrobotics.ResetMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.spark.config.SparkBaseConfig;
 
+import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -39,8 +41,11 @@ public class Robot extends TimedRobot {
     }
     @Override
     public void robotInit() {
+        m_robotContainer = new RobotContainer();
         resetEncoders();
-        
+        SignalLogger.setPath("/u/logs");
+
+        DataLogManager.start();
         CommandScheduler.getInstance().schedule(FollowPathCommand.warmupCommand());
 
 
@@ -93,66 +98,43 @@ public class Robot extends TimedRobot {
      */
     @Override
     public void teleopPeriodic() {
-        if (DriveSubsystem.m_joystick.getAButtonPressed()) {
-            ShooterSubsystem.m_NEOshooter.set(1);
-        } else if (DriveSubsystem.m_joystick.getAButtonReleased()){
+       if (DriveSubsystem.m_joystick.getAButtonPressed()) {
+           ShooterSubsystem.m_NEOshooter.set(1);
+       } else if (DriveSubsystem.m_joystick.getAButtonReleased()){
             ShooterSubsystem.m_NEOshooter.set(0);
-        } else if (DriveSubsystem.m_joystick.getLeftBumperButtonPressed()) {
-            ShooterSubsystem.m_NEObeltIndexer.set(1);
-            ShooterSubsystem.m_NEOfeeder.set(1);
-        } else if (DriveSubsystem.m_joystick.getLeftBumperButtonReleased()) {
-            ShooterSubsystem.m_NEObeltIndexer.set(0);
-            ShooterSubsystem.m_NEOfeeder.set(0);
-        }
-    //              
-    //              double avanzar = -DriveSubsystem.m_joystick.getLeftY(); 
-    //              // 
-    //              double lateral = DriveSubsystem.m_joystick.getLeftX(); 
-    //              // 
-    //              double rotar = DriveSubsystem.m_joystick.getRightX(); 
-//          
-    //              // Aplicamos una deadzone simple para que no zumbe el motor si el gatillo no regresa a cero exacto
-//          
-    //              if (DriveSubsystem.m_joystick.getAButton()) {
-    //                  IntakeSubsystem.m_NeoIntake.set(-0.6);
-    //              } else {
-    //                  IntakeSubsystem.m_NeoIntake.set(0);
-    //              }
-    //              // Control de Intake (Lanzar/Succionar)
-    //              if (DriveSubsystem.m_joystick.getLeftTriggerAxis() > .7) {
-    //                  IntakeSubsystem.m_IntakeElevar.setVoltage(.7); 
-//          
-    //              } else if (DriveSubsystem.m_joystick.getLeftTriggerAxis() > .5) {
-    //                  
-    //                  IntakeSubsystem.m_IntakeElevar.setVoltage(0.4);
-    //              } else if (DriveSubsystem.m_joystick.getLeftTriggerAxis() > .3) {
-    //                  
-    //                  IntakeSubsystem.m_IntakeElevar.setVoltage(0.15);
-    //              } 
-    //              // Control de Outtake (Invertido)
-    //              else if (DriveSubsystem.m_joystick.getRightTriggerAxis() > .7) {
-    //                  
-    //                  IntakeSubsystem.m_IntakeElevar.setVoltage(-.7);
-    //              } else if (DriveSubsystem.m_joystick.getRightTriggerAxis() > .5) {
-    //                  
-    //                  IntakeSubsystem.m_IntakeElevar.setVoltage(-0.4);
-    //              } else if (DriveSubsystem.m_joystick.getRightTriggerAxis() > .2) {
-    //                  
-    //                  IntakeSubsystem.m_IntakeElevar.setVoltage(-0.15);
-    //              } 
-    //              // Si no se presiona nada, detener el motor
-    //              else {
-    //                  IntakeSubsystem.m_IntakeElevar.setVoltage(0.40);
-    //              }
-//          
-    //              // Esto hace el movimiento field-oriented
-    //              DriveSubsystem.m_robotDrive.driveCartesian(
-    //                  avanzar * 0.2,  // Forward/Backwards 
-    //                  lateral * 0.2,  // Strafe
-    //                  rotar * 0.3, // Rotacion
-    //                  DriveSubsystem.m_gyro.getRotation2d().unaryMinus()); // unaryMinus porque funciona xddddd  
-    //                  
-    //              DriveSubsystem.updateOdometry();
+       } else if (DriveSubsystem.m_joystick.getLeftBumperButtonPressed()) {
+           ShooterSubsystem.m_NEObeltIndexer.set(1);
+           ShooterSubsystem.m_NEOfeeder.set(1);
+       } else if (DriveSubsystem.m_joystick.getLeftBumperButtonReleased()) {
+        ShooterSubsystem.m_NEObeltIndexer.set(      0);
+        ShooterSubsystem.m_NEOfeeder.set(0);
+       } else if (DriveSubsystem.m_joystick.getXButtonPressed()) {
+            IntakeSubsystem.m_NeoIntake.set(-1);
+       } else if (DriveSubsystem.m_joystick.getXButtonReleased()) {
+            IntakeSubsystem.m_NeoIntake.set(0);
+       } else if (DriveSubsystem.m_joystick.getLeftTriggerAxis() == 1) {
+        IntakeSubsystem.m_IntakeElevar.set(.2);
+       } else if (DriveSubsystem.m_joystick.getRightTriggerAxis() == 1) {
+        IntakeSubsystem.m_IntakeElevar.set(-.5);
+       } else {
+        IntakeSubsystem.m_IntakeElevar.set(0);
+       }
+             
+        double avanzar = -DriveSubsystem.m_joystick.getLeftY(); 
+        
+        double lateral = DriveSubsystem.m_joystick.getLeftX(); 
+        
+        double rotar = DriveSubsystem.m_joystick.getRightX(); 
+        // movimiento field-oriented
+        //TODO: change to sysID
+        DriveSubsystem.m_robotDrive.driveCartesian(
+            avanzar * 0.2,  // Forward/Backwards 
+            lateral * 0.2,  // Strafe
+            rotar * 0.3, // Rotacion
+            DriveSubsystem.m_gyro.getRotation2d().unaryMinus()); // unaryMinus porque funciona xddddd
+//
+//
+        //DriveSubsystem.updateOdometry();
     }
 
     // --- FUNCIONES AUXILIARES ---
@@ -164,10 +146,10 @@ public class Robot extends TimedRobot {
         DriveSubsystem.m_rearLeft.getEncoder().setPosition(0);
         DriveSubsystem.m_frontRight.getEncoder().setPosition(0);
         DriveSubsystem.m_rearRight.getEncoder().setPosition(0);
-        DriveSubsystem.m_gyro.reset();
         DriveSubsystem.m_gyro.setYaw(0);
+        DriveSubsystem.m_gyro.reset();
     }
-    
+
     public void motorConfig() {
                 SparkMaxConfig commmConfig = new SparkMaxConfig();
         commmConfig.idleMode(SparkBaseConfig.IdleMode.kBrake);

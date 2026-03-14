@@ -13,8 +13,7 @@ public final class Constants {
         public static final int kRearLeftMotorPort = 4;
         public static final int kRearRightMotorPort = 3;
         public static final int kGyroPort = 30; 
-        public static final int kNeoIntakePort = 6;
-        public static final int KIntakeElevarPort = 5;
+        // public static final int kNeoIntakePort = 6;
         
         // Puerto USB del control
         public static final int kJoystickPort = 0;
