@@ -8,9 +8,9 @@ public final class Constants {
     
     public static class DriveConstants {
         // Puertos CAN de los motores
-        public static final int kFrontLeftMotorPort = 1;
+        public static final int kFrontLeftMotorPort = 4;
         public static final int kFrontRightMotorPort = 2;
-        public static final int kRearLeftMotorPort = 4;
+        public static final int kRearLeftMotorPort = 1;
         public static final int kRearRightMotorPort = 3;
         public static final int kGyroPort = 30; 
         // public static final int kNeoIntakePort = 6;

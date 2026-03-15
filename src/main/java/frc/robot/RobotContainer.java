@@ -36,18 +36,27 @@ public class RobotContainer {
         // 4. CONFIGURAR COMANDO POR DEFECTO (MANEJO)
         // Esto reemplaza lo que tenías en teleopPeriodic en Robot.java
         m_DriveSubsystem.setDefaultCommand(
-            new RunCommand(
-                () -> m_DriveSubsystem.driveRobotRelative(
-                    // Lógica de manejo: Ejes del control
-                    // Invertimos Y porque hacia adelante en el joystick es negativo (-1)
-                    new edu.wpi.first.math.kinematics.ChassisSpeeds(
-                        -m_driverController.getLeftY() * 2.0, // Metros/segundo (ajusta la velocidad máx)
-                        -m_driverController.getLeftX() * 2.0, // Metros/segundo
-                        -m_driverController.getRightX() * 2.0  // Radianes/segundo
-                    )
-                ),
-                m_DriveSubsystem
-            )
+                new RunCommand(
+                    () -> {
+                    // 1. Leemos los joysticks (invertimos Y para que adelante sea positivo)
+                        double avanzar = -m_driverController.getLeftY() * 3.0; // Multiplica por tu velocidad máxima deseada en m/s
+                        double lateral = -m_driverController.getLeftX() * 3.0;
+                        double rotate = -m_driverController.getRightX() * 3.0;
+
+                        // 2. Aplicamos cinemática Field-Oriented con el giroscopio
+                        edu.wpi.first.math.kinematics.ChassisSpeeds velocidades = 
+                            edu.wpi.first.math.kinematics.ChassisSpeeds.fromFieldRelativeSpeeds(
+                                avanzar, 
+                                lateral, 
+                                rotate, 
+                                DriveSubsystem.m_gyro.getRotation2d()
+                            );
+
+                        // 3. Movemos el robot
+                        m_DriveSubsystem.driveRobotRelative(velocidades);
+                    },
+                    m_DriveSubsystem
+                )   
         );
         //TODO: UNCOMMENT CONFIGURE BINDINGS
        // configureBindings();

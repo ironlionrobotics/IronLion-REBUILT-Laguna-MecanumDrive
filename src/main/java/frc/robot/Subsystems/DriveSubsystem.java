@@ -45,14 +45,6 @@ public class DriveSubsystem extends SubsystemBase  {
     public static final SparkMax m_frontRight = new SparkMax(DriveConstants.kFrontRightMotorPort, com.revrobotics.spark.SparkLowLevel.MotorType.kBrushless);
     public static final SparkMax m_rearRight = new SparkMax(DriveConstants.kRearRightMotorPort, com.revrobotics.spark.SparkLowLevel.MotorType.kBrushless);
 
-
-    public static final MecanumDrive m_robotDrive = new MecanumDrive(
-      m_frontLeft, 
-      m_rearLeft, 
-      m_frontRight, 
-      m_rearRight
-    );
-
     public static final Pigeon2 m_gyro = new Pigeon2(DriveConstants.kGyroPort);
 
     public static final XboxController m_joystick = new XboxController(DriveConstants.kJoystickPort);
@@ -123,7 +115,7 @@ public class DriveSubsystem extends SubsystemBase  {
     }
     
     public static void updateOdometry() {
-        m_poseEstimator.update(m_gyro.getRotation2d(), getCurrentDistances());
+        m_poseEstimator.update(m_gyro.getRotation2d().unaryMinus(), getCurrentDistances());
     }
 
     public Pose2d getPose() {

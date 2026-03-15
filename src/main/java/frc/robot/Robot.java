@@ -41,6 +41,7 @@ public class Robot extends TimedRobot {
     }
     @Override
     public void robotInit() {
+        motorConfig();  
         m_robotContainer = new RobotContainer();
         resetEncoders();
         SignalLogger.setPath("/u/logs");
@@ -82,7 +83,7 @@ public class Robot extends TimedRobot {
         SmartDashboard.putNumber("X Error", DriveSubsystem.m_xController.getError());
         SmartDashboard.putNumber("Y Error", DriveSubsystem.m_yController.getError());
 
-    }
+    }       
 
     @Override
     public void teleopInit() {
@@ -99,7 +100,7 @@ public class Robot extends TimedRobot {
     @Override
     public void teleopPeriodic() {
        if (DriveSubsystem.m_joystick.getAButtonPressed()) {
-           ShooterSubsystem.m_NEOshooter.set(1);
+           ShooterSubsystem.m_NEOshooter.set(.4);
        } else if (DriveSubsystem.m_joystick.getAButtonReleased()){
             ShooterSubsystem.m_NEOshooter.set(0);
        } else if (DriveSubsystem.m_joystick.getLeftBumperButtonPressed()) {
@@ -113,28 +114,16 @@ public class Robot extends TimedRobot {
        } else if (DriveSubsystem.m_joystick.getXButtonReleased()) {
             IntakeSubsystem.m_NeoIntake.set(0);
        } else if (DriveSubsystem.m_joystick.getLeftTriggerAxis() == 1) {
-        IntakeSubsystem.m_IntakeElevar.set(.2);
+        IntakeSubsystem.m_IntakeElevar.set(.1);
        } else if (DriveSubsystem.m_joystick.getRightTriggerAxis() == 1) {
-        IntakeSubsystem.m_IntakeElevar.set(-.5);
+        IntakeSubsystem.m_IntakeElevar.set(-.1);
        } else {
         IntakeSubsystem.m_IntakeElevar.set(0);
        }
              
-        double avanzar = -DriveSubsystem.m_joystick.getLeftY(); 
-        
-        double lateral = DriveSubsystem.m_joystick.getLeftX(); 
-        
-        double rotar = DriveSubsystem.m_joystick.getRightX(); 
         // movimiento field-oriented
         //TODO: change to sysID
-        DriveSubsystem.m_robotDrive.driveCartesian(
-            avanzar * 0.2,  // Forward/Backwards 
-            lateral * 0.2,  // Strafe
-            rotar * 0.3, // Rotacion
-            DriveSubsystem.m_gyro.getRotation2d().unaryMinus()); // unaryMinus porque funciona xddddd
-//
-//
-        //DriveSubsystem.updateOdometry();
+
     }
 
     // --- FUNCIONES AUXILIARES ---
@@ -151,7 +140,7 @@ public class Robot extends TimedRobot {
     }
 
     public void motorConfig() {
-                SparkMaxConfig commmConfig = new SparkMaxConfig();
+        SparkMaxConfig commmConfig = new SparkMaxConfig();
         commmConfig.idleMode(SparkBaseConfig.IdleMode.kBrake);
         commmConfig.encoder
             .positionConversionFactor(DriveConstants.conversionFactor)
