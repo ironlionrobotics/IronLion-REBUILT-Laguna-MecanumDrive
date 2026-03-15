@@ -14,7 +14,7 @@ public class ShooterSubsystem extends SubsystemBase {
 
     }
     public void runShooter() {
-        m_NEOshooter.set(1);
+        m_NEOshooter.set(.4);
     }
 
     public void stopShooter() {

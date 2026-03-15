@@ -38,12 +38,10 @@ public class RobotContainer {
         m_DriveSubsystem.setDefaultCommand(
                 new RunCommand(
                     () -> {
-                    // 1. Leemos los joysticks (invertimos Y para que adelante sea positivo)
-                        double avanzar = -m_driverController.getLeftY() * 3.0; // Multiplica por tu velocidad máxima deseada en m/s
+                        double avanzar = -m_driverController.getLeftY() * 3.0; 
                         double lateral = -m_driverController.getLeftX() * 3.0;
                         double rotate = -m_driverController.getRightX() * 3.0;
 
-                        // 2. Aplicamos cinemática Field-Oriented con el giroscopio
                         edu.wpi.first.math.kinematics.ChassisSpeeds velocidades = 
                             edu.wpi.first.math.kinematics.ChassisSpeeds.fromFieldRelativeSpeeds(
                                 avanzar, 
@@ -52,7 +50,6 @@ public class RobotContainer {
                                 DriveSubsystem.m_gyro.getRotation2d()
                             );
 
-                        // 3. Movemos el robot
                         m_DriveSubsystem.driveRobotRelative(velocidades);
                     },
                     m_DriveSubsystem

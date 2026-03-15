@@ -56,11 +56,10 @@ public class DriveSubsystem extends SubsystemBase  {
     public static final PIDController m_backLeftPIDController = new PIDController(.2, 0, 0);
     public static final PIDController m_backRightPIDController = new PIDController(.2, 0, 0);
 
-    //TODO: measure robot from center to wheel in meters x and y not equal 
-    public static final Translation2d m_frontLeftLocation = new Translation2d(0.32, 0.32);
-    public static final Translation2d m_frontRightLocation = new Translation2d(0.32, -0.32);
-    public static final Translation2d m_backLeftLocation = new Translation2d(-0.32, 0.32);
-    public static final Translation2d m_backRightLocation = new Translation2d(-0.32, -0.32);
+    public static final Translation2d m_frontLeftLocation = new Translation2d(0.31, 0.21);
+    public static final Translation2d m_frontRightLocation = new Translation2d(0.31, -0.21);
+    public static final Translation2d m_backLeftLocation = new Translation2d(-0.31, 0.21);
+    public static final Translation2d m_backRightLocation = new Translation2d(-0.31, -0.21);
     
     //TODO: ask about these values TUNE sys id with KS, KV AND KA 
     public final SimpleMotorFeedforward m_feedforward = new SimpleMotorFeedforward(1, 3,4);

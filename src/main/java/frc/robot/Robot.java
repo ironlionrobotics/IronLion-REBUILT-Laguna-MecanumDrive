@@ -30,9 +30,7 @@ public class Robot extends TimedRobot {
      * Constructor del Robot. Se llama una sola vez al iniciar el programa.
      */
     public Robot() {
-        // Configurar los factores de conversion de los encoders
         motorConfig();  
-        // Configurar el chasis Mecanum
 
     }
     @Override
@@ -41,7 +39,6 @@ public class Robot extends TimedRobot {
     }
     @Override
     public void robotInit() {
-        motorConfig();  
         m_robotContainer = new RobotContainer();
         resetEncoders();
         SignalLogger.setPath("/u/logs");
@@ -100,19 +97,19 @@ public class Robot extends TimedRobot {
     @Override
     public void teleopPeriodic() {
        if (DriveSubsystem.m_joystick.getAButtonPressed()) {
-           ShooterSubsystem.m_NEOshooter.set(.4);
+        ShooterSubsystem.m_NEOshooter.set(SmartDashboard.getNumber("shooter voltage", Constants.DriveConstants.SHOOTER_SPEED));
        } else if (DriveSubsystem.m_joystick.getAButtonReleased()){
-            ShooterSubsystem.m_NEOshooter.set(0);
+        ShooterSubsystem.m_NEOshooter.set(0);
        } else if (DriveSubsystem.m_joystick.getLeftBumperButtonPressed()) {
-           ShooterSubsystem.m_NEObeltIndexer.set(1);
-           ShooterSubsystem.m_NEOfeeder.set(1);
+        ShooterSubsystem.m_NEObeltIndexer.set(SmartDashboard.getNumber("belt indexer voltage", Constants.DriveConstants.BELT_INDEXER_SPEED));
+        ShooterSubsystem.m_NEOfeeder.set(SmartDashboard.getNumber("feeder voltage", Constants.DriveConstants.FEEDER_SPEED));
        } else if (DriveSubsystem.m_joystick.getLeftBumperButtonReleased()) {
-        ShooterSubsystem.m_NEObeltIndexer.set(      0);
+        ShooterSubsystem.m_NEObeltIndexer.set(0);
         ShooterSubsystem.m_NEOfeeder.set(0);
        } else if (DriveSubsystem.m_joystick.getXButtonPressed()) {
-            IntakeSubsystem.m_NeoIntake.set(-1);
+        IntakeSubsystem.m_NeoIntake.set(-1);
        } else if (DriveSubsystem.m_joystick.getXButtonReleased()) {
-            IntakeSubsystem.m_NeoIntake.set(0);
+        IntakeSubsystem.m_NeoIntake.set(0);
        } else if (DriveSubsystem.m_joystick.getLeftTriggerAxis() == 1) {
         IntakeSubsystem.m_IntakeElevar.set(.1);
        } else if (DriveSubsystem.m_joystick.getRightTriggerAxis() == 1) {

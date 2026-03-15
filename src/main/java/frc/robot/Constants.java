@@ -25,6 +25,11 @@ public final class Constants {
         public static final double kWheelCircumferenceMeters = kWheelDiameterMeters * Math.PI;
         public static final double gearRatio = 5.95; 
         public static final double conversionFactor = kWheelCircumferenceMeters / gearRatio;
+        
+        // voltage constants
+        public static final double SHOOTER_SPEED = .5; // 4 pulgadas = 0.1016 metros 
+        public static final double BELT_INDEXER_SPEED = 1;
+        public static final double FEEDER_SPEED = 1;
 
     }
     public static final class AutoConstants {
