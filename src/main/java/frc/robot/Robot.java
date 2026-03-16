@@ -18,8 +18,6 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.Constants.*;
 import frc.robot.Subsystems.DriveSubsystem;
-import frc.robot.Subsystems.IntakeSubsystem;
-import frc.robot.Subsystems.ShooterSubsystem;
 
 public class Robot extends TimedRobot {
 
@@ -41,8 +39,8 @@ public class Robot extends TimedRobot {
     public void robotInit() {
         m_robotContainer = new RobotContainer();
         resetEncoders();
+        //TODO: SET path for signal logger
         SignalLogger.setPath("/u/logs");
-
         DataLogManager.start();
         CommandScheduler.getInstance().schedule(FollowPathCommand.warmupCommand());
 
@@ -64,10 +62,6 @@ public class Robot extends TimedRobot {
             CommandScheduler.getInstance().schedule(m_autonomousCommand);
 ;
         }
-        // Limpiar datos anteriores del SmartDashboard
-
-        Constants.timer.restart();
-        Constants.timer.start();
 
 
     }
@@ -84,8 +78,6 @@ public class Robot extends TimedRobot {
 
     @Override
     public void teleopInit() {
-        // 4. CANCELAR AUTO AL ENTRAR A TELEOP
-        // Esto evita que el robot siga intentando hacer la ruta si tomas el control
         if (m_autonomousCommand != null) {
             m_autonomousCommand.cancel();
         }
@@ -96,29 +88,7 @@ public class Robot extends TimedRobot {
      */
     @Override
     public void teleopPeriodic() {
-       if (DriveSubsystem.m_joystick.getAButtonPressed()) {
-        ShooterSubsystem.m_NEOshooter.set(SmartDashboard.getNumber("shooter voltage", Constants.DriveConstants.SHOOTER_SPEED));
-       } else if (DriveSubsystem.m_joystick.getAButtonReleased()){
-        ShooterSubsystem.m_NEOshooter.set(0);
-       } else if (DriveSubsystem.m_joystick.getLeftBumperButtonPressed()) {
-        ShooterSubsystem.m_NEObeltIndexer.set(SmartDashboard.getNumber("belt indexer voltage", Constants.DriveConstants.BELT_INDEXER_SPEED));
-        ShooterSubsystem.m_NEOfeeder.set(SmartDashboard.getNumber("feeder voltage", Constants.DriveConstants.FEEDER_SPEED));
-       } else if (DriveSubsystem.m_joystick.getLeftBumperButtonReleased()) {
-        ShooterSubsystem.m_NEObeltIndexer.set(0);
-        ShooterSubsystem.m_NEOfeeder.set(0);
-       } else if (DriveSubsystem.m_joystick.getXButtonPressed()) {
-        IntakeSubsystem.m_NeoIntake.set(-1);
-       } else if (DriveSubsystem.m_joystick.getXButtonReleased()) {
-        IntakeSubsystem.m_NeoIntake.set(0);
-       } else if (DriveSubsystem.m_joystick.getLeftTriggerAxis() == 1) {
-        IntakeSubsystem.m_IntakeElevar.set(.1);
-       } else if (DriveSubsystem.m_joystick.getRightTriggerAxis() == 1) {
-        IntakeSubsystem.m_IntakeElevar.set(-.1);
-       } else {
-        IntakeSubsystem.m_IntakeElevar.set(0);
-       }
-             
-        // movimiento field-oriented
+
         //TODO: change to sysID
 
     }
@@ -151,14 +121,6 @@ public class Robot extends TimedRobot {
         rightConfig.apply(commmConfig);
         rightConfig.inverted(true);
 
-        SparkBaseConfig intakeConfig = new SparkMaxConfig();
-        intakeConfig.idleMode(SparkBaseConfig.IdleMode.kCoast);
-        intakeConfig.inverted(true);
-
-        SparkBaseConfig intakeElevarConfig = new SparkMaxConfig();
-        intakeConfig.idleMode(SparkBaseConfig.IdleMode.kBrake);
-        intakeConfig.inverted(false);
-
         // El lado que se invierte depende del cableado y mecanica del robot.
         DriveSubsystem.m_frontLeft.configure(leftConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
         DriveSubsystem.m_rearLeft.configure(leftConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
@@ -166,9 +128,6 @@ public class Robot extends TimedRobot {
         DriveSubsystem.m_frontRight.configure(rightConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
         DriveSubsystem.m_rearRight.configure(rightConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
-        IntakeSubsystem.m_NeoIntake.configure(intakeConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-
-        IntakeSubsystem.m_IntakeElevar.configure(intakeElevarConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
     }
        
 }

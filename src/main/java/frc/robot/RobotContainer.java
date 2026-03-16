@@ -3,34 +3,39 @@ package frc.robot;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 
+import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.RunCommand;
+import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
+import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants.DriveConstants;
 import frc.robot.Commands.RunIntakeCommand;
 import frc.robot.Subsystems.DriveSubsystem;
 import frc.robot.Subsystems.IntakeSubsystem;
+import frc.robot.Subsystems.ShooterSubsystem;
 public class RobotContainer {
-    private final IntakeSubsystem m_IntakeSubsystem = new IntakeSubsystem();
+    private final IntakeSubsystem m_intakeSubsystem = new IntakeSubsystem();
     private final DriveSubsystem m_DriveSubsystem = new DriveSubsystem();
+    private final ShooterSubsystem m_shooterSubsystem = new ShooterSubsystem();
+
+    private final CommandXboxController m_joystickMechanismsController = new CommandXboxController(DriveConstants.kJoystickPort);
+    private final CommandJoystick m_joystickDriverController = new CommandJoystick(DriveConstants.kJoystick_Cool_Port);
 
     public SendableChooser<Command> autoChooser;
-    private final XboxController m_driverController = new XboxController(DriveConstants.kJoystickPort);
 
     public RobotContainer() {
+        configureBindings();
         // ...
-        NamedCommands.registerCommand("runIntake", new RunIntakeCommand(m_IntakeSubsystem, 2));
         // Build an auto chooser. This will use Commands.none() as the default option.
         m_DriveSubsystem.configureAutoBuilder();
         autoChooser = AutoBuilder.buildAutoChooser();
-
-        // Another option that allows you to specify the default auto by its name
-        // autoChooser = AutoBuilder.buildAutoChooser("My Default Auto");
-
         SmartDashboard.putData("Auto Chooser", autoChooser);
 
         // 4. CONFIGURAR COMANDO POR DEFECTO (MANEJO)
@@ -38,16 +43,17 @@ public class RobotContainer {
         m_DriveSubsystem.setDefaultCommand(
                 new RunCommand(
                     () -> {
-                        double avanzar = -m_driverController.getLeftY() * 3.0; 
-                        double lateral = -m_driverController.getLeftX() * 3.0;
-                        double rotate = -m_driverController.getRightX() * 3.0;
+                        double deadZone = 0.1;
+                        double avanzar = -MathUtil.applyDeadband(m_joystickDriverController.getY(), deadZone) * 3.0; 
+                        double lateral = -MathUtil.applyDeadband(m_joystickDriverController.getX(), deadZone) * 3.0;
+                        double rotate = -MathUtil.applyDeadband(m_joystickDriverController.getTwist(), deadZone) * 3.0;
 
                         edu.wpi.first.math.kinematics.ChassisSpeeds velocidades = 
                             edu.wpi.first.math.kinematics.ChassisSpeeds.fromFieldRelativeSpeeds(
                                 avanzar, 
                                 lateral, 
                                 rotate, 
-                                DriveSubsystem.m_gyro.getRotation2d()
+                                m_DriveSubsystem.getHeading()
                             );
 
                         m_DriveSubsystem.driveRobotRelative(velocidades);
@@ -58,7 +64,29 @@ public class RobotContainer {
         //TODO: UNCOMMENT CONFIGURE BINDINGS
        // configureBindings();
     }
+    private void configureBindings() {
+        // --- SHOOTER (A Button) ---
+        m_joystickMechanismsController.a()
+            .onTrue(m_shooterSubsystem.setShooterRPMCommand(3000)) // Command that sets shooter to 3000 RPM
+            .onFalse(m_shooterSubsystem.stopShooterCommand());
 
+        // --- INDEXER & FEEDER (Left Bumper) ---
+        m_joystickMechanismsController.leftBumper()
+            .onTrue(m_shooterSubsystem.runIndexerAndFeederCommand())
+            .onFalse(m_shooterSubsystem.stopIndexerAndFeederCommand());
+
+        // --- INTAKE (X Button) ---
+        // Assuming you have runReverseIntakeCommand() in your subsystem that sets it to -1
+        m_joystickMechanismsController.x()
+            .onTrue(m_intakeSubsystem.runIntakeCommand())
+            .onFalse(m_intakeSubsystem.stopIntakeCommand());
+        // --- ARM ELEVATION (Triggers) ---
+        // triggers axis (0.0 to 1.0)
+        new Trigger(() -> m_joystickMechanismsController.getRightTriggerAxis() == 1.0)
+            .onTrue(m_intakeSubsystem.setArmAngleCommand(120)) // Command that sets motor to -0.1
+            .onFalse(m_intakeSubsystem.setArmAngleCommand(0)); // Command that sets motor to 0
+    }
+    //TODO: UNCOMMENT CONFIGURE BINDINGS
    //private void configureBindings() {
    //    new JoystickButton(m_driverController, XboxController.Button.kA.value)
    //        .whileTrue(m_DriveSubsystem.sysIdQuasistatic(SysIdRoutine.Direction.kForward));

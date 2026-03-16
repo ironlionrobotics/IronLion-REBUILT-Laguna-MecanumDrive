@@ -46,10 +46,6 @@ public class DriveSubsystem extends SubsystemBase  {
     public static final SparkMax m_rearRight = new SparkMax(DriveConstants.kRearRightMotorPort, com.revrobotics.spark.SparkLowLevel.MotorType.kBrushless);
 
     public static final Pigeon2 m_gyro = new Pigeon2(DriveConstants.kGyroPort);
-
-    public static final XboxController m_joystick = new XboxController(DriveConstants.kJoystickPort);
-
-    public static final GenericHID m_joystickCool = new GenericHID(DriveConstants.kJoystick_Cool_Port);
     
     public static final PIDController m_frontLeftPIDController = new PIDController(.2, 0, 0);
     public static final PIDController m_frontRightPIDController = new PIDController(.2, 0, 0);
@@ -75,7 +71,10 @@ public class DriveSubsystem extends SubsystemBase  {
             m_yController,
             new ProfiledPIDController(1, 0, 0,
             new TrapezoidProfile.Constraints(6.28, 3.14)));
-        
+    
+    public edu.wpi.first.math.geometry.Rotation2d getHeading() {
+      return m_gyro.getRotation2d().unaryMinus();
+    }
     public static final MecanumDriveKinematics m_kinematics = 
       new MecanumDriveKinematics(
         m_frontLeftLocation, m_frontRightLocation, m_backLeftLocation, m_backRightLocation
@@ -132,8 +131,8 @@ public class DriveSubsystem extends SubsystemBase  {
     public static MecanumDriveWheelPositions getCurrentDistances() {
         return new MecanumDriveWheelPositions( // de rotaciones, convertidos a metros por rueda
             m_frontLeft.getEncoder().getPosition()  * DriveConstants.conversionFactor,
-            m_rearLeft.getEncoder().getPosition()   * DriveConstants.conversionFactor,
             m_frontRight.getEncoder().getPosition() * DriveConstants.conversionFactor,
+            m_rearLeft.getEncoder().getPosition()   * DriveConstants.conversionFactor,
             m_rearRight.getEncoder().getPosition()  * DriveConstants.conversionFactor
           );
     }
@@ -146,8 +145,8 @@ public class DriveSubsystem extends SubsystemBase  {
 
       return new MecanumDriveWheelSpeeds(
         frontLeftRPS * DriveConstants.conversionFactor,
-        rearLeftRPS * DriveConstants.conversionFactor,
         frontRightRPS * DriveConstants.conversionFactor,
+        rearLeftRPS * DriveConstants.conversionFactor,
         rearRightRPS * DriveConstants.conversionFactor
         );
     }
@@ -196,7 +195,7 @@ public class DriveSubsystem extends SubsystemBase  {
 
     public void configureAutoBuilder() {
       try {
-        var config = RobotConfig.fromGUISettings();
+        RobotConfig config = RobotConfig.fromGUISettings();
       //Configure AutoBuilder last
         AutoBuilder.configure(
           this::getPose, // Robot pose supplier
@@ -204,6 +203,8 @@ public class DriveSubsystem extends SubsystemBase  {
           this::getRobotRelativeSpeeds, // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
             (speeds, feedforwards) -> driveRobotRelative(speeds), // Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds. Also optionally outputs individual module feedforwards
             new PPHolonomicDriveController(
+              //TODO: tune these values for the built in path following controller. 
+              // The first 2 are for translation, the last 2 are for rotation
               new PIDConstants(2, 0, 0),
               new PIDConstants(2, 0, 0)
             ), // PPLTVController is the built in path following controller for differential drive trains

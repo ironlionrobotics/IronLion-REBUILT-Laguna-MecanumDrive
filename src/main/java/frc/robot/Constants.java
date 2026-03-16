@@ -1,10 +1,8 @@
 package frc.robot;
 
 import edu.wpi.first.math.util.Units;
-import edu.wpi.first.wpilibj.Timer;
 
 public final class Constants {
-    public static final Timer timer = new Timer(); 
     
     public static class DriveConstants {
         // Puertos CAN de los motores
