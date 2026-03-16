@@ -1,22 +1,17 @@
 package frc.robot;
 
 import com.pathplanner.lib.auto.AutoBuilder;
-import com.pathplanner.lib.auto.NamedCommands;
 
 import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.wpilibj.GenericHID;
-import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
-import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants.DriveConstants;
-import frc.robot.Commands.RunIntakeCommand;
 import frc.robot.Subsystems.DriveSubsystem;
 import frc.robot.Subsystems.IntakeSubsystem;
 import frc.robot.Subsystems.ShooterSubsystem;
@@ -43,31 +38,30 @@ public class RobotContainer {
         m_DriveSubsystem.setDefaultCommand(
                 new RunCommand(
                     () -> {
-                        double deadZone = 0.1;
-                        double avanzar = -MathUtil.applyDeadband(m_joystickDriverController.getY(), deadZone) * 3.0; 
+                        double deadZone = .5;
+                        double avanzar = -MathUtil.applyDeadband(m_joystickDriverController.getY(), deadZone) * 5.0; 
                         double lateral = -MathUtil.applyDeadband(m_joystickDriverController.getX(), deadZone) * 3.0;
-                        double rotate = -MathUtil.applyDeadband(m_joystickDriverController.getTwist(), deadZone) * 3.0;
+                        double rotate = MathUtil.applyDeadband(m_joystickDriverController.getZ(), deadZone) * 3.0;
 
                         edu.wpi.first.math.kinematics.ChassisSpeeds velocidades = 
                             edu.wpi.first.math.kinematics.ChassisSpeeds.fromFieldRelativeSpeeds(
+                                //TODO: testing, for now 
+                                lateral, //changed, used to be avanzar
                                 avanzar, 
-                                lateral, 
                                 rotate, 
                                 m_DriveSubsystem.getHeading()
-                            );
+                                );
 
                         m_DriveSubsystem.driveRobotRelative(velocidades);
                     },
                     m_DriveSubsystem
                 )   
         );
-        //TODO: UNCOMMENT CONFIGURE BINDINGS
-       // configureBindings();
     }
     private void configureBindings() {
         // --- SHOOTER (A Button) ---
         m_joystickMechanismsController.a()
-            .onTrue(m_shooterSubsystem.setShooterRPMCommand(3000)) // Command that sets shooter to 3000 RPM
+            .onTrue(m_shooterSubsystem.setShooterRPMCommand(2000)) // sets shooter toa target of 3000 RPM
             .onFalse(m_shooterSubsystem.stopShooterCommand());
 
         // --- INDEXER & FEEDER (Left Bumper) ---
@@ -80,12 +74,18 @@ public class RobotContainer {
         m_joystickMechanismsController.x()
             .onTrue(m_intakeSubsystem.runIntakeCommand())
             .onFalse(m_intakeSubsystem.stopIntakeCommand());
+                        
+        
+
         // --- ARM ELEVATION (Triggers) ---
         // triggers axis (0.0 to 1.0)
+
         new Trigger(() -> m_joystickMechanismsController.getRightTriggerAxis() == 1.0)
-            .onTrue(m_intakeSubsystem.setArmAngleCommand(120)) // Command that sets motor to -0.1
-            .onFalse(m_intakeSubsystem.setArmAngleCommand(0)); // Command that sets motor to 0
+            .onTrue(m_intakeSubsystem.runIntakeElevarCommand()) // Command that sets motor to -0.1
+            .onFalse(m_intakeSubsystem.stopIntakeElevarCommand()); // Command that sets motor to 0
     }
+        // --- limelight driver --- 
+      
     //TODO: UNCOMMENT CONFIGURE BINDINGS
    //private void configureBindings() {
    //    new JoystickButton(m_driverController, XboxController.Button.kA.value)

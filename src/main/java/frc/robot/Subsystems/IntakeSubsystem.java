@@ -1,6 +1,7 @@
 package frc.robot.Subsystems;
 
 import com.revrobotics.PersistMode;
+import com.revrobotics.RelativeEncoder;
 import com.revrobotics.ResetMode;
 import com.revrobotics.spark.SparkBase.ControlType;
 
@@ -13,12 +14,14 @@ import com.revrobotics.spark.config.SparkMaxConfig;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
+import frc.robot.Constants.DriveConstants;
+
 public class IntakeSubsystem extends SubsystemBase {
 
-    private final SparkMax m_NeoIntake = new SparkMax(8, com.revrobotics.spark.SparkLowLevel.MotorType.kBrushless);
-    private final SparkMax m_IntakeElevar = new SparkMax(5, com.revrobotics.spark.SparkLowLevel.MotorType.kBrushless);   
+    private final SparkMax m_NeoIntake = new SparkMax(DriveConstants.kNeoIntakePort, com.revrobotics.spark.SparkLowLevel.MotorType.kBrushless);
+    private final SparkMax m_IntakeElevar = new SparkMax(DriveConstants.kIntakeArmPort, com.revrobotics.spark.SparkLowLevel.MotorType.kBrushless);   
     private final SparkClosedLoopController m_armIntakeController; 
-    
+    public final RelativeEncoder armEncoder;
     public IntakeSubsystem() { 
       SparkBaseConfig intakeConfig = new SparkMaxConfig();
       intakeConfig.idleMode(SparkBaseConfig.IdleMode.kCoast);
@@ -28,14 +31,19 @@ public class IntakeSubsystem extends SubsystemBase {
       SparkBaseConfig intakeElevarConfig = new SparkMaxConfig();
       intakeElevarConfig.idleMode(SparkBaseConfig.IdleMode.kBrake);
       intakeElevarConfig.inverted(false);
-      intakeElevarConfig.closedLoop.p(0.01).i(0).d(0);
-      intakeElevarConfig.encoder.positionConversionFactor(360); 
+      intakeElevarConfig.closedLoop
+        .p(0.01)
+        .i(0)
+        .d(0);
+      
+      intakeElevarConfig.encoder.positionConversionFactor(3); 
 
       m_NeoIntake.configure(intakeConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
       m_IntakeElevar.configure(intakeElevarConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
         
-      m_IntakeElevar.getEncoder().setPosition(120);
+      armEncoder = m_IntakeElevar.getEncoder();
+      armEncoder.setPosition(120);
       m_armIntakeController = m_IntakeElevar.getClosedLoopController();
     }
     public void runIntake() {
@@ -53,7 +61,7 @@ public class IntakeSubsystem extends SubsystemBase {
         return this.run(() -> setIntakeElevarAngle(targetDegrees));
     }
     public void runIntakeElevar() {
-        m_IntakeElevar.set(0.5);
+        m_IntakeElevar.set(0.2);
     }
 
     public void stopIntakeElevar() {

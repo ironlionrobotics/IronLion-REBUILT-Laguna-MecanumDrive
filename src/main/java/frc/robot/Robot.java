@@ -3,15 +3,12 @@
 // the WPILib BSD license file in the root directory of this project.
 
 package frc.robot;
-
-import com.ctre.phoenix6.SignalLogger;
 import com.pathplanner.lib.commands.FollowPathCommand;
 import com.revrobotics.PersistMode;
 import com.revrobotics.ResetMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.spark.config.SparkBaseConfig;
 
-import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -40,8 +37,6 @@ public class Robot extends TimedRobot {
         m_robotContainer = new RobotContainer();
         resetEncoders();
         //TODO: SET path for signal logger
-        SignalLogger.setPath("/u/logs");
-        DataLogManager.start();
         CommandScheduler.getInstance().schedule(FollowPathCommand.warmupCommand());
 
 

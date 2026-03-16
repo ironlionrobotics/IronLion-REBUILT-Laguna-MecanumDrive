@@ -25,6 +25,7 @@ import edu.wpi.first.math.kinematics.MecanumDriveWheelPositions;
 import edu.wpi.first.math.kinematics.MecanumDriveWheelSpeeds;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.units.measure.Voltage;
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
@@ -60,17 +61,17 @@ public class DriveSubsystem extends SubsystemBase  {
     //TODO: ask about these values TUNE sys id with KS, KV AND KA 
     public final SimpleMotorFeedforward m_feedforward = new SimpleMotorFeedforward(1, 3,4);
 
-        // --- HOLONOMIC DRIVE --- //
     //TODO: tune pid controllers: x and y + profied pid (rotation), starting with .2
-        public static final PIDController m_xController = new PIDController(1.0, 0, 0);
-        public static final PIDController m_yController = new PIDController(1.0, 0, 0);
+      // --- HOLONOMIC DRIVE --- //
+      public static final PIDController m_xController = new PIDController(1.0, 0, 0);
+      public static final PIDController m_yController = new PIDController(1.0, 0, 0);
 
-        public static final HolonomicDriveController m_driveController = 
-          new HolonomicDriveController(
-            m_xController,
-            m_yController,
-            new ProfiledPIDController(1, 0, 0,
-            new TrapezoidProfile.Constraints(6.28, 3.14)));
+      public static final HolonomicDriveController m_driveController = 
+        new HolonomicDriveController(
+          m_xController,
+          m_yController,
+          new ProfiledPIDController(1, 0, 0,
+          new TrapezoidProfile.Constraints(6.28, 3.14)));
     
     public edu.wpi.first.math.geometry.Rotation2d getHeading() {
       return m_gyro.getRotation2d().unaryMinus();
@@ -192,7 +193,18 @@ public class DriveSubsystem extends SubsystemBase  {
       return m_kinematics.toChassisSpeeds(getCurrentState());
     }
 
+    public double getLimelightX() {
+        return NetworkTableInstance.getDefault().getTable("CAM1").getEntry("tx").getDouble(0.0);
+    }
 
+    public boolean hasTarget() {
+        return NetworkTableInstance.getDefault().getTable("CAM1").getEntry("tv").getDouble(0.0) == 1.0;
+    }
+
+    public double getTargetID() {
+        return NetworkTableInstance.getDefault().getTable("CAM1").getEntry("tid").getDouble(-1.0);
+    }
+    
     public void configureAutoBuilder() {
       try {
         RobotConfig config = RobotConfig.fromGUISettings();
