@@ -40,69 +40,80 @@ import frc.robot.Constants.DriveConstants;
 
 public class DriveSubsystem extends SubsystemBase  {
   
-    public static final SparkMax m_frontLeft = new SparkMax(DriveConstants.kFrontLeftMotorPort, com.revrobotics.spark.SparkLowLevel.MotorType.kBrushless);
-    public static final SparkMax m_rearLeft = new SparkMax(DriveConstants.kRearLeftMotorPort, com.revrobotics.spark.SparkLowLevel.MotorType.kBrushless);
-    public static final SparkMax m_frontRight = new SparkMax(DriveConstants.kFrontRightMotorPort, com.revrobotics.spark.SparkLowLevel.MotorType.kBrushless);
-    public static final SparkMax m_rearRight = new SparkMax(DriveConstants.kRearRightMotorPort, com.revrobotics.spark.SparkLowLevel.MotorType.kBrushless);
+    private final SparkMax m_frontLeft = new SparkMax(DriveConstants.kFrontLeftMotorPort, com.revrobotics.spark.SparkLowLevel.MotorType.kBrushless);
+    private final SparkMax m_rearLeft = new SparkMax(DriveConstants.kRearLeftMotorPort, com.revrobotics.spark.SparkLowLevel.MotorType.kBrushless);
+    private final SparkMax m_frontRight = new SparkMax(DriveConstants.kFrontRightMotorPort, com.revrobotics.spark.SparkLowLevel.MotorType.kBrushless);
+    private final SparkMax m_rearRight = new SparkMax(DriveConstants.kRearRightMotorPort, com.revrobotics.spark.SparkLowLevel.MotorType.kBrushless);
 
-    public static final Pigeon2 m_gyro = new Pigeon2(DriveConstants.kGyroPort);
-
-    public static final XboxController m_joystick = new XboxController(DriveConstants.kJoystickPort);
-
-    public static final GenericHID m_joystickCool = new GenericHID(DriveConstants.kJoystick_Cool_Port);
+    private final Pigeon2 m_gyro = new Pigeon2(DriveConstants.kGyroPort);
     
-    public static final PIDController m_frontLeftPIDController = new PIDController(.2, 0, 0);
-    public static final PIDController m_frontRightPIDController = new PIDController(.2, 0, 0);
-    public static final PIDController m_backLeftPIDController = new PIDController(.2, 0, 0);
-    public static final PIDController m_backRightPIDController = new PIDController(.2, 0, 0);
+    private final PIDController m_frontLeftPIDController = new PIDController(DriveConstants.kP_X, 0, 0);
+    private final PIDController m_frontRightPIDController = new PIDController(DriveConstants.kP_X, 0, 0);
+    private final PIDController m_backLeftPIDController = new PIDController(DriveConstants.kP_X, 0, 0);
+    private final PIDController m_backRightPIDController = new PIDController(DriveConstants.kP_X, 0, 0);
 
-    public static final Translation2d m_frontLeftLocation = new Translation2d(0.31, 0.21);
-    public static final Translation2d m_frontRightLocation = new Translation2d(0.31, -0.21);
-    public static final Translation2d m_backLeftLocation = new Translation2d(-0.31, 0.21);
-    public static final Translation2d m_backRightLocation = new Translation2d(-0.31, -0.21);
-    
     //TODO: ask about these values TUNE sys id with KS, KV AND KA 
-    public final SimpleMotorFeedforward m_feedforward = new SimpleMotorFeedforward(1, 3,4);
+    private final SimpleMotorFeedforward m_feedforward = new SimpleMotorFeedforward(1, 3,4);
 
-        // --- HOLONOMIC DRIVE --- //
-    //TODO: tune pid controllers: x and y + profied pid (rotation), starting with .2
-        public static final PIDController m_xController = new PIDController(1.0, 0, 0);
-        public static final PIDController m_yController = new PIDController(1.0, 0, 0);
+    // --- HOLONOMIC DRIVE --- //
+    private final PIDController m_xController = new PIDController(DriveConstants.kP_X, DriveConstants.kI_X, DriveConstants.kD_X);
+    private final PIDController m_yController = new PIDController(DriveConstants.kP_Y, DriveConstants.kI_Y, DriveConstants.kD_Y);
 
-        public static final HolonomicDriveController m_driveController = 
-          new HolonomicDriveController(
-            m_xController,
-            m_yController,
-            new ProfiledPIDController(1, 0, 0,
-            new TrapezoidProfile.Constraints(6.28, 3.14)));
+    private final HolonomicDriveController m_driveController = 
+      new HolonomicDriveController(
+        m_xController,
+        m_yController,
+        new ProfiledPIDController(DriveConstants.kP_Theta, DriveConstants.kI_Theta, DriveConstants.kD_Theta,
+        new TrapezoidProfile.Constraints(6.28, 3.14)));
         
-    public static final MecanumDriveKinematics m_kinematics = 
+    private final MecanumDriveKinematics m_kinematics = 
       new MecanumDriveKinematics(
-        m_frontLeftLocation, m_frontRightLocation, m_backLeftLocation, m_backRightLocation
+        DriveConstants.m_frontLeftLocation, DriveConstants.m_frontRightLocation, DriveConstants.m_backLeftLocation, DriveConstants.m_backRightLocation
       );
     
-    MecanumDriveOdometry m_odometry = 
-      new MecanumDriveOdometry(
-        m_kinematics,
-        DriveSubsystem.m_gyro.getRotation2d(),
-        new MecanumDriveWheelPositions(
-          m_frontLeft.getEncoder().getPosition() * DriveConstants.conversionFactor, 
-          m_frontRight.getEncoder().getPosition() * DriveConstants.conversionFactor,
-          m_rearLeft.getEncoder().getPosition() * DriveConstants.conversionFactor, 
-          m_rearRight.getEncoder().getPosition() * DriveConstants.conversionFactor
-        ),
-        new Pose2d(0, 0, new Rotation2d())
-      );
+    private final MecanumDriveOdometry m_odometry;
 
-    public static final MecanumDrivePoseEstimator m_poseEstimator =
-      new MecanumDrivePoseEstimator(
+    private final MecanumDrivePoseEstimator m_poseEstimator;
+
+    public DriveSubsystem() {
+        // Motor Configuration
+        com.revrobotics.spark.config.SparkMaxConfig commmConfig = new com.revrobotics.spark.config.SparkMaxConfig();
+        commmConfig.idleMode(com.revrobotics.spark.config.SparkBaseConfig.IdleMode.kBrake)
+                   .smartCurrentLimit(DriveConstants.kDriveCurrentLimit);
+        commmConfig.encoder
+            .positionConversionFactor(DriveConstants.conversionFactor)
+            .velocityConversionFactor(DriveConstants.conversionFactor / 60.0); // conversion a metros por segundo
+        
+        // Invertir motores
+        com.revrobotics.spark.config.SparkBaseConfig leftConfig = new com.revrobotics.spark.config.SparkMaxConfig().idleMode(com.revrobotics.spark.config.SparkMaxConfig.IdleMode.kBrake);
+        leftConfig.apply(commmConfig);
+        leftConfig.inverted(false);
+        
+        com.revrobotics.spark.config.SparkBaseConfig rightConfig = new com.revrobotics.spark.config.SparkMaxConfig().idleMode(com.revrobotics.spark.config.SparkMaxConfig.IdleMode.kBrake);
+        rightConfig.apply(commmConfig);
+        rightConfig.inverted(true);
+
+        m_frontLeft.configure(leftConfig, com.revrobotics.spark.SparkBase.ResetMode.kResetSafeParameters, com.revrobotics.spark.SparkBase.PersistMode.kPersistParameters);
+        m_rearLeft.configure(leftConfig, com.revrobotics.spark.SparkBase.ResetMode.kResetSafeParameters, com.revrobotics.spark.SparkBase.PersistMode.kPersistParameters);
+        m_frontRight.configure(rightConfig, com.revrobotics.spark.SparkBase.ResetMode.kResetSafeParameters, com.revrobotics.spark.SparkBase.PersistMode.kPersistParameters);
+        m_rearRight.configure(rightConfig, com.revrobotics.spark.SparkBase.ResetMode.kResetSafeParameters, com.revrobotics.spark.SparkBase.PersistMode.kPersistParameters);
+
+        m_odometry = new MecanumDriveOdometry(
+            m_kinematics,
+            m_gyro.getRotation2d(),
+            getCurrentDistances(),
+            Pose2d.kZero
+        );
+
+        m_poseEstimator = new MecanumDrivePoseEstimator(
           m_kinematics,
-          DriveSubsystem.m_gyro.getRotation2d(),
+          m_gyro.getRotation2d(),
           getCurrentDistances(),
           Pose2d.kZero,
           VecBuilder.fill(0.05, 0.05, Units.degreesToRadians(5)),
           VecBuilder.fill(0.5, 0.5, Units.degreesToRadians(30))
         );
+    }
 
     public void resetOdometry(Pose2d pose) {
         m_gyro.reset();
@@ -113,8 +124,13 @@ public class DriveSubsystem extends SubsystemBase  {
         m_poseEstimator.resetPosition(m_gyro.getRotation2d(), getCurrentDistances(), pose);
     }
     
-    public static void updateOdometry() {
+    public void updateOdometry() {
         m_poseEstimator.update(m_gyro.getRotation2d().unaryMinus(), getCurrentDistances());
+    }
+
+    // --- INTEGRACIÓN VISION (LIMELIGHT) ---
+    public void addVisionMeasurement(Pose2d visionRobotPoseMeters, double timestampSeconds) {
+        m_poseEstimator.addVisionMeasurement(visionRobotPoseMeters, timestampSeconds);
     }
 
     public Pose2d getPose() {
@@ -129,7 +145,7 @@ public class DriveSubsystem extends SubsystemBase  {
       wheelSpeeds.desaturate(.5);  
       setSpeeds(wheelSpeeds);
     }
-    public static MecanumDriveWheelPositions getCurrentDistances() {
+    public MecanumDriveWheelPositions getCurrentDistances() {
         return new MecanumDriveWheelPositions( // de rotaciones, convertidos a metros por rueda
             m_frontLeft.getEncoder().getPosition()  * DriveConstants.conversionFactor,
             m_rearLeft.getEncoder().getPosition()   * DriveConstants.conversionFactor,
@@ -225,43 +241,43 @@ public class DriveSubsystem extends SubsystemBase  {
         e.printStackTrace();
       }
     }
-//TODO: UNCOMMENT SYSID
-  //private final SysIdRoutine m_sysIdRoutine = new SysIdRoutine(
-  //  new SysIdRoutine.Config(),
-  //  new SysIdRoutine.Mechanism(
-  //      // EXPLICACIÓN: Recibe un objeto 'volts' y le extraemos el valor numérico
-  //      (Voltage volts) -> {
-  //          double v = volts.in(edu.wpi.first.units.Units.Volts);
-  //          m_frontLeft.setVoltage(v);
-  //          m_frontRight.setVoltage(v);
-  //          m_rearLeft.setVoltage(v);
-  //          m_rearRight.setVoltage(v);
-  //      },
-  //      // EXPLICACIÓN: Guardamos los datos de rendimiento del motor
-  //      log -> {
-  //          // Log para el lado izquierdo (puedes agruparlos así)
-  //          log.motor("drive-left")
-  //              .voltage(Volts.of(m_frontLeft.getBusVoltage() * m_frontLeft.getAppliedOutput()))
-  //              .linearPosition(Meters.of(m_frontLeft.getEncoder().getPosition() * DriveConstants.conversionFactor))
-  //              .linearVelocity(MetersPerSecond.of(m_frontLeft.getEncoder().getVelocity() * (DriveConstants.conversionFactor / 60.0)));
-  //          
-  //          // Log para el lado derecho
-  //          log.motor("drive-right")
-  //              .voltage(Volts.of(m_frontRight.getBusVoltage() * m_frontRight.getAppliedOutput()))
-  //              .linearPosition(Meters.of(m_frontRight.getEncoder().getPosition() * DriveConstants.conversionFactor))
-  //              .linearVelocity(MetersPerSecond.of(m_frontRight.getEncoder().getVelocity() * (DriveConstants.conversionFactor / 60.0)));
-  //      },
-  //      this
-  //  )
-  //);
-//
-  //public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
-  //    return m_sysIdRoutine.quasistatic(direction);
-  //}
-//
-  //public Command sysIdDynamic(SysIdRoutine.Direction direction) {
-  //    return m_sysIdRoutine.dynamic(direction);
-  //}
+  private final SysIdRoutine m_sysIdRoutine = new SysIdRoutine(
+    new SysIdRoutine.Config(),
+    new SysIdRoutine.Mechanism(
+        (Voltage volts) -> {
+            double v = volts.in(edu.wpi.first.units.Units.Volts);
+            m_frontLeft.setVoltage(v);
+            m_frontRight.setVoltage(v);
+            m_rearLeft.setVoltage(v);
+            m_rearRight.setVoltage(v);
+        },
+        log -> {
+            log.motor("drive-left")
+                .voltage(Volts.of(m_frontLeft.getBusVoltage() * m_frontLeft.getAppliedOutput()))
+                .linearPosition(Meters.of(m_frontLeft.getEncoder().getPosition() * DriveConstants.conversionFactor))
+                .linearVelocity(MetersPerSecond.of(m_frontLeft.getEncoder().getVelocity() * (DriveConstants.conversionFactor / 60.0)));
+            
+            log.motor("drive-right")
+                .voltage(Volts.of(m_frontRight.getBusVoltage() * m_frontRight.getAppliedOutput()))
+                .linearPosition(Meters.of(m_frontRight.getEncoder().getPosition() * DriveConstants.conversionFactor))
+                .linearVelocity(MetersPerSecond.of(m_frontRight.getEncoder().getVelocity() * (DriveConstants.conversionFactor / 60.0)));
+        },
+        this
+    )
+  );
+
+  public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
+      return m_sysIdRoutine.quasistatic(direction);
+  }
+
+  public Command sysIdDynamic(SysIdRoutine.Direction direction) {
+      return m_sysIdRoutine.dynamic(direction);
+  }
+
+  public Pigeon2 getGyro() { return m_gyro; }
+  public PIDController getXController() { return m_xController; }
+  public PIDController getYController() { return m_yController; }
+
 
   @Override
   public void periodic() {
@@ -269,5 +285,12 @@ public class DriveSubsystem extends SubsystemBase  {
       
       SmartDashboard.putNumber("Robot X", getPose().getX());
       SmartDashboard.putNumber("Robot Y", getPose().getY());
+      SmartDashboard.putNumber("Robot Yaw", m_gyro.getRotation2d().getDegrees());
+
+      // Telemetría para afinar PathPlanner PID
+      SmartDashboard.putNumber("X Error", m_xController.getPositionError());
+      SmartDashboard.putNumber("Y Error", m_yController.getPositionError());
+      // El HolonomicDriveController usa un ProfiledPIDController para Theta, obtenemos el error así:
+      SmartDashboard.putNumber("Theta Error", m_driveController.getThetaController().getPositionError());
   }
 }
