@@ -4,125 +4,101 @@
 
 package frc.robot;
 import com.pathplanner.lib.commands.FollowPathCommand;
-import com.revrobotics.PersistMode;
-import com.revrobotics.ResetMode;
-import com.revrobotics.spark.config.SparkMaxConfig;
-import com.revrobotics.spark.config.SparkBaseConfig;
 
 import edu.wpi.first.wpilibj.TimedRobot;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.Constants.*;
-import frc.robot.Subsystems.DriveSubsystem;
 
+/**
+ * La clase Robot es el "cerebro" principal que controla el ciclo de vida del robot.
+ * Hereda de TimedRobot, lo que significa que sus métodos se ejecutan periódicamente
+ * (por defecto cada 20 milisegundos).
+ */
 public class Robot extends TimedRobot {
 
+    // Comando que se ejecutará durante el periodo autónomo
     private Command m_autonomousCommand;
+    // Contenedor principal donde se definen subsistemas y controles (la "columna vertebral")
     private RobotContainer m_robotContainer;
 
-    /**
-     * Constructor del Robot. Se llama una sola vez al iniciar el programa.
-     */
     public Robot() {
-        motorConfig();  
-
     }
+
+    /**
+     * Este método se ejecuta constantemente cada 20ms sin importar el modo del robot
+     * (Autónomo, Teleoperado, Deshabilitado). 
+     */
     @Override
     public void robotPeriodic() {
+        // Ejecuta el Scheduler de Comandos. Esto es lo que hace que los "Commands" y "Subsystems" funcionen.
+        // Revisa qué comandos están activos y llama a sus métodos asociados. ¡Es OBLIGATORIO que esto se corra!
         CommandScheduler.getInstance().run();
     }
+
+    /**
+     * Este método se ejecuta UNA SOLA VEZ cuando el robot se enciende o se reinicia su código.
+     * Es idea para crear los objetos e inicializar sensores.
+     */
     @Override
     public void robotInit() {
+        // Instanciamos el RobotContainer. Es aquí donde configuramos controles y módulos.
         m_robotContainer = new RobotContainer();
-        resetEncoders();
-        //TODO: SET path for signal logger
-        CommandScheduler.getInstance().schedule(FollowPathCommand.warmupCommand());
-
-
-        //TODO:add smart dashboard values for trajectory and pose
         
+        // Configuramos la ruta para los logs de hardware (telemetría de motores Phoenix)
+        SignalLogger.setPath("/u/logs");
+
+        // Esta utilidad nativa graba variales y telemetría a un pendrive USB automáticamente, muy útil para diagnosticar errores.
+        DataLogManager.start();
+        
+        // Pre-carga las rutas de PathPlanner en RAM. Esto ayuda a que el robot no se quede trabado medio segundo el iniciar el modo Autónomo.
+        CommandScheduler.getInstance().schedule(FollowPathCommand.warmupCommand());
     }
     
     /**
-     * Esta funcion se llama una vez al iniciar el modo autonomo.
+     * Este método se llama UNA SOLA VEZ cuando inicia el periodo Autónomo Oficial (primeros 20 seg).
      */
     @Override
     public void autonomousInit() {
-        // Resetear todo al empezar el autonomo para una medicion limpia
-        resetEncoders();
+        // Obtenemos del RobotContainer el comando autónomo que el conductor pidió desde la Pantalla (Dashboard)
         m_autonomousCommand = m_robotContainer.getAutonomousCommand();
         
+        // Si sí elegimos un comando, lo metemos al Scheduler para que empiece a correr
         if (m_autonomousCommand != null) {
             CommandScheduler.getInstance().schedule(m_autonomousCommand);
-;
         }
 
-
+        // Reinicia e inicia nuestro propio temporizador (para la lógica propia de tiempo)
+        Constants.timer.restart();
+        Constants.timer.start();
     }
 
     /**
-     * Esta funcion se llama periodicamente (cada ~20ms) durante el modo autonomo.
+     * Este método se ejecuta periódicamente (cada 20ms) DURANTE todo el periodo autónomo.
      */
     @Override
     public void autonomousPeriodic() {
-        SmartDashboard.putNumber("X Error", DriveSubsystem.m_xController.getError());
-        SmartDashboard.putNumber("Y Error", DriveSubsystem.m_yController.getError());
-
+        // Se deja vacío comúnmente ya que la arquitectura basada en comandos maneja el control automáticamente en el `robotPeriodic`.
     }       
 
+    /**
+     * Este método se llama UNA SOLA VEZ cuando termina el autónomo e inicia el Teleoperado (humanos al volante).
+     */
     @Override
     public void teleopInit() {
+        // Cancelamos fuertemente el comando autónomo si este seguía corriendo (por si la rutina no terminó a tiempo).
+        // Así los conductores recuperan el control inmediatamente.
         if (m_autonomousCommand != null) {
             m_autonomousCommand.cancel();
         }
     }
 
     /**
-     * Esta funcion se llama periodicamente durante el modo teleoperado.
+     * Este método se ejecuta periódicamente (cada 20ms) DURANTE el modo Teleoperado.
      */
     @Override
     public void teleopPeriodic() {
-
-        //TODO: change to sysID
-
+        // Vacío, el control de comandos funciona leyendo los joysticks (ver RobotContainer).
     }
 
-    // --- FUNCIONES AUXILIARES ---
-    /**
-     * Reinicia la posicion de los encoders de los motores y giroscopio a 0.
-     */
-    public void resetEncoders() {
-        DriveSubsystem.m_frontLeft.getEncoder().setPosition(0);
-        DriveSubsystem.m_rearLeft.getEncoder().setPosition(0);
-        DriveSubsystem.m_frontRight.getEncoder().setPosition(0);
-        DriveSubsystem.m_rearRight.getEncoder().setPosition(0);
-        DriveSubsystem.m_gyro.setYaw(0);
-        DriveSubsystem.m_gyro.reset();
-    }
-
-    public void motorConfig() {
-        SparkMaxConfig commmConfig = new SparkMaxConfig();
-        commmConfig.idleMode(SparkBaseConfig.IdleMode.kBrake);
-        commmConfig.encoder
-            .positionConversionFactor(DriveConstants.conversionFactor)
-            .velocityConversionFactor(DriveConstants.conversionFactor / 60.0); // conversion a metros por segundo
-        // Invertir los motores del lado izquierdo.        
-        SparkBaseConfig leftConfig = new SparkMaxConfig().idleMode(SparkMaxConfig.IdleMode.kBrake);
-        leftConfig.apply(commmConfig);
-        leftConfig.inverted(false);
-        
-        SparkBaseConfig rightConfig = new SparkMaxConfig().idleMode(SparkMaxConfig.IdleMode.kBrake);
-        rightConfig.apply(commmConfig);
-        rightConfig.inverted(true);
-
-        // El lado que se invierte depende del cableado y mecanica del robot.
-        DriveSubsystem.m_frontLeft.configure(leftConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-        DriveSubsystem.m_rearLeft.configure(leftConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-
-        DriveSubsystem.m_frontRight.configure(rightConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-        DriveSubsystem.m_rearRight.configure(rightConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-
-    }
-       
 }

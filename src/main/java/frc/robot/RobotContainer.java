@@ -2,60 +2,102 @@ package frc.robot;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 
-import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.RunCommand;
-import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
-import edu.wpi.first.wpilibj2.command.button.Trigger;
-import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants.DriveConstants;
+import frc.robot.Constants.TunableConstants;
+import frc.robot.Commands.RunIntakeCommand;
+import frc.robot.Commands.AdaptiveShootCommand;
+import frc.robot.Commands.AutoShootCommand;
 import frc.robot.Subsystems.DriveSubsystem;
 import frc.robot.Subsystems.IntakeSubsystem;
 import frc.robot.Subsystems.ShooterSubsystem;
+import frc.robot.Subsystems.VisionSubsystem;
+import frc.robot.Subsystems.MatchStateSubsystem;
+import frc.robot.Subsystems.LEDSubsystem;
+import frc.robot.Subsystems.DashboardSubsystem;
+
+/**
+ * RobotContainer: La columna vertebral del robot.
+ * Crea subsistemas, registra NamedCommands, y delega los controles a OI.java.
+ * 
+ * NOTA: Los bindings de botones están en OI.java para facilitar cambios rápidos.
+ */
 public class RobotContainer {
-    private final IntakeSubsystem m_intakeSubsystem = new IntakeSubsystem();
+    // =========================================================================
+    // SUBSISTEMAS (Componentes lógicos del robot)
+    // =========================================================================
+    private final IntakeSubsystem m_IntakeSubsystem = new IntakeSubsystem();
     private final DriveSubsystem m_DriveSubsystem = new DriveSubsystem();
-    private final ShooterSubsystem m_shooterSubsystem = new ShooterSubsystem();
+    private final ShooterSubsystem m_ShooterSubsystem = new ShooterSubsystem();
+    private final VisionSubsystem m_VisionSubsystem = new VisionSubsystem(m_DriveSubsystem);
+    private final MatchStateSubsystem m_MatchStateSubsystem = new MatchStateSubsystem();
+    private final LEDSubsystem m_LedSubsystem = new LEDSubsystem(m_MatchStateSubsystem);
+    private final DashboardSubsystem m_DashboardSubsystem = new DashboardSubsystem(m_DriveSubsystem, m_MatchStateSubsystem, m_VisionSubsystem, m_ShooterSubsystem);
 
-    private final CommandXboxController m_joystickMechanismsController = new CommandXboxController(DriveConstants.kJoystickPort);
-    private final CommandJoystick m_joystickDriverController = new CommandJoystick(DriveConstants.kJoystick_Cool_Port);
-
+    // Selectores y Controles
     public SendableChooser<Command> autoChooser;
+    
+    // Controles de la Driver Station (Puertos 0 y 2 definidos en Constants)
+    private final CommandXboxController m_driverController = new CommandXboxController(DriveConstants.kJoystickPort);
+    private final CommandXboxController m_operatorController = new CommandXboxController(DriveConstants.kJoystick_Cool_Port);
 
     public RobotContainer() {
-        configureBindings();
-        // ...
-        // Build an auto chooser. This will use Commands.none() as the default option.
+        // --- Publicar valores tunables al SmartDashboard ---
+        TunableConstants.publishDefaults();
+
+        // --- Registrar NamedCommands para PathPlanner ---
+        NamedCommands.registerCommand("runIntake", new RunIntakeCommand(m_IntakeSubsystem, 4));
+        NamedCommands.registerCommand("intakePiece", m_IntakeSubsystem.runIntakeCommand());
+        NamedCommands.registerCommand("intakeDown", m_IntakeSubsystem.runIntakeElevarCommand(0.1));
+        NamedCommands.registerCommand("intakeUp", m_IntakeSubsystem.runIntakeElevarCommand(-0.1));
+        NamedCommands.registerCommand("shootHub", new AdaptiveShootCommand(m_ShooterSubsystem, m_VisionSubsystem, m_DriveSubsystem, m_LedSubsystem));
+        NamedCommands.registerCommand("autoShoot", new AutoShootCommand(m_ShooterSubsystem, m_VisionSubsystem));
+        
+        // --- Configurar PathPlanner ---
         m_DriveSubsystem.configureAutoBuilder();
         autoChooser = AutoBuilder.buildAutoChooser();
         SmartDashboard.putData("Auto Chooser", autoChooser);
 
-        // 4. CONFIGURAR COMANDO POR DEFECTO (MANEJO)
-        // Esto reemplaza lo que tenías en teleopPeriodic en Robot.java
+        // --- Comando por defecto del Chasis (Manejo Manual con velocidad tunable) ---
         m_DriveSubsystem.setDefaultCommand(
-                new RunCommand(
-                    () -> {
-                        double deadZone = .5;
-                        double avanzar = -MathUtil.applyDeadband(m_joystickDriverController.getY(), deadZone) * 5.0; 
-                        double lateral = -MathUtil.applyDeadband(m_joystickDriverController.getX(), deadZone) * 3.0;
-                        double rotate = MathUtil.applyDeadband(m_joystickDriverController.getZ(), deadZone) * 3.0;
+            new RunCommand(
+                () -> {
+                    // Leer la velocidad actual desde TunableConstants (ajustable en vivo)
+                    double speed = TunableConstants.driveSpeedMultiplier;
 
-                        edu.wpi.first.math.kinematics.ChassisSpeeds velocidades = 
-                            edu.wpi.first.math.kinematics.ChassisSpeeds.fromFieldRelativeSpeeds(
-                                //TODO: testing, for now 
-                                lateral, //changed, used to be avanzar
-                                avanzar, 
-                                rotate, 
-                                m_DriveSubsystem.getHeading()
-                                );
+                    double avanzar = -edu.wpi.first.math.MathUtil.applyDeadband(
+                        m_driverController.getLeftY(), DriveConstants.kJoystickDeadband) * speed; 
+                    double lateral = -edu.wpi.first.math.MathUtil.applyDeadband(
+                        m_driverController.getLeftX(), DriveConstants.kJoystickDeadband) * speed;
+                    double rotate = -edu.wpi.first.math.MathUtil.applyDeadband(
+                        m_driverController.getRightX(), DriveConstants.kJoystickDeadband) * speed;
 
-                        m_DriveSubsystem.driveRobotRelative(velocidades);
-                    },
-                    m_DriveSubsystem
-                )   
+                    edu.wpi.first.math.kinematics.ChassisSpeeds velocidades = 
+                        edu.wpi.first.math.kinematics.ChassisSpeeds.fromFieldRelativeSpeeds(
+                            avanzar, lateral, rotate,
+                            m_DriveSubsystem.getGyro().getRotation2d()
+                        );
+
+                    m_DriveSubsystem.driveRobotRelative(velocidades);
+                },
+                m_DriveSubsystem
+            )   
+        );
+        
+        // --- Delegar bindings de botones a OI.java ---
+        OI.configureBindings(
+            m_driverController,
+            m_operatorController,
+            m_DriveSubsystem,
+            m_ShooterSubsystem,
+            m_IntakeSubsystem,
+            m_VisionSubsystem,
+            m_MatchStateSubsystem,
+            m_LedSubsystem
         );
     }
     private void configureBindings() {
@@ -69,43 +111,7 @@ public class RobotContainer {
             .onTrue(m_shooterSubsystem.runIndexerAndFeederCommand())
             .onFalse(m_shooterSubsystem.stopIndexerAndFeederCommand());
 
-        // --- INTAKE (X Button) ---
-        // Assuming you have runReverseIntakeCommand() in your subsystem that sets it to -1
-        m_joystickMechanismsController.x()
-            .onTrue(m_intakeSubsystem.runIntakeCommand())
-            .onFalse(m_intakeSubsystem.stopIntakeCommand());
-                        
-        
-
-        // --- ARM ELEVATION (Triggers) ---
-        // triggers axis (0.0 to 1.0)
-
-        new Trigger(() -> m_joystickMechanismsController.getRightTriggerAxis() == 1.0)
-            .onTrue(m_intakeSubsystem.runIntakeElevarCommand()) // Command that sets motor to -0.1
-            .onFalse(m_intakeSubsystem.stopIntakeElevarCommand()); // Command that sets motor to 0
-    }
-        // --- limelight driver --- 
-      
-    //TODO: UNCOMMENT CONFIGURE BINDINGS
-   //private void configureBindings() {
-   //    new JoystickButton(m_driverController, XboxController.Button.kA.value)
-   //        .whileTrue(m_DriveSubsystem.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
-
-   //    // Botón B: Dynamic Forward (Salto brusco hacia adelante) -> Para calcular kA
-   //    new JoystickButton(m_driverController, XboxController.Button.kB.value)
-   //        .whileTrue(m_DriveSubsystem.sysIdDynamic(SysIdRoutine.Direction.kForward));
-   //    // Botón X: Quasistatic Reverse (Rampa suave hacia atrás)
-   //    new JoystickButton(m_driverController, XboxController.Button.kX.value)
-   //        .whileTrue(m_DriveSubsystem.sysIdQuasistatic(SysIdRoutine.Direction.kReverse));
-
-   //    // Botón Y: Dynamic Reverse (Salto brusco hacia atrás)
-   //    new JoystickButton(m_driverController, XboxController.Button.kY.value)
-   //        .whileTrue(m_DriveSubsystem.sysIdDynamic(SysIdRoutine.Direction.kReverse));
-   //}
-
     public Command getAutonomousCommand() {
-
         return autoChooser.getSelected();
     }
-
 }
