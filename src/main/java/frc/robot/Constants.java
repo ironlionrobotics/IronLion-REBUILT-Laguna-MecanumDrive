@@ -10,7 +10,6 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
  * Regla de oro: Si un número puede cambiar en competencia, debe estar aquí.
  */
 public final class Constants {
-    public static final Timer timer = new Timer(); 
     
     // =====================================================================
     // CONSTANTES TUNABLES EN VIVO (Sin Re-Deploy)

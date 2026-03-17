@@ -1,6 +1,11 @@
 package frc.robot.Subsystems;
 
+import com.revrobotics.PersistMode;
+import com.revrobotics.ResetMode;
+import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkMax;
+import com.revrobotics.spark.config.SparkBaseConfig;
+import com.revrobotics.spark.config.SparkMaxConfig;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -94,7 +99,8 @@ public class ShooterSubsystem extends SubsystemBase {
         m_NEOfeeder.set(ShooterConstants.kFeederSpeed);
     }
 
-    public void stopFeeder() {
+    public void stopIndexerAndFeeder() {
+        m_NEObeltIndexer.stopMotor();
         m_NEOfeeder.stopMotor();
     }
 

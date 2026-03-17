@@ -25,6 +25,7 @@ import edu.wpi.first.math.kinematics.MecanumDriveWheelPositions;
 import edu.wpi.first.math.kinematics.MecanumDriveWheelSpeeds;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.units.measure.Voltage;
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
@@ -185,8 +186,8 @@ public class DriveSubsystem extends SubsystemBase  {
     public MecanumDriveWheelPositions getCurrentDistances() {
         return new MecanumDriveWheelPositions( 
             m_frontLeft.getEncoder().getPosition()  * DriveConstants.conversionFactor,
-            m_rearLeft.getEncoder().getPosition()   * DriveConstants.conversionFactor,
             m_frontRight.getEncoder().getPosition() * DriveConstants.conversionFactor,
+            m_rearLeft.getEncoder().getPosition()   * DriveConstants.conversionFactor,
             m_rearRight.getEncoder().getPosition()  * DriveConstants.conversionFactor
           );
     }
@@ -200,8 +201,8 @@ public class DriveSubsystem extends SubsystemBase  {
 
       return new MecanumDriveWheelSpeeds(
         frontLeftRPS * DriveConstants.conversionFactor,
-        rearLeftRPS * DriveConstants.conversionFactor,
         frontRightRPS * DriveConstants.conversionFactor,
+        rearLeftRPS * DriveConstants.conversionFactor,
         rearRightRPS * DriveConstants.conversionFactor
         );
     }

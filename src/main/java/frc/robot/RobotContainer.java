@@ -1,7 +1,6 @@
 package frc.robot;
 
 import com.pathplanner.lib.auto.AutoBuilder;
-import com.pathplanner.lib.auto.NamedCommands;
 
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -101,6 +100,16 @@ public class RobotContainer {
             m_LedSubsystem
         );
     }
+    private void configureBindings() {
+        // --- SHOOTER (A Button) ---
+        m_joystickMechanismsController.a()
+            .onTrue(m_shooterSubsystem.setShooterRPMCommand(2000)) // sets shooter toa target of 3000 RPM
+            .onFalse(m_shooterSubsystem.stopShooterCommand());
+
+        // --- INDEXER & FEEDER (Left Bumper) ---
+        m_joystickMechanismsController.leftBumper()
+            .onTrue(m_shooterSubsystem.runIndexerAndFeederCommand())
+            .onFalse(m_shooterSubsystem.stopIndexerAndFeederCommand());
 
     public Command getAutonomousCommand() {
         return autoChooser.getSelected();
