@@ -66,8 +66,6 @@ public class Robot extends TimedRobot {
      */
     @Override
     public void autonomousPeriodic() {
-        SmartDashboard.putNumber("X Error", DriveSubsystem.m_xController.getError());
-        SmartDashboard.putNumber("Y Error", DriveSubsystem.m_yController.getError());
 
     }       
 

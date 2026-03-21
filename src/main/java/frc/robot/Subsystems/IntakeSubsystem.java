@@ -1,71 +1,49 @@
 package frc.robot.Subsystems;
 
 import com.revrobotics.PersistMode;
-import com.revrobotics.RelativeEncoder;
 import com.revrobotics.ResetMode;
-import com.revrobotics.spark.SparkBase.ControlType;
-
-
-import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.SparkBaseConfig;
 import com.revrobotics.spark.config.SparkMaxConfig;
 
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-
 import frc.robot.Constants.DriveConstants;
+import frc.robot.Constants.TunableConstants;
 
 public class IntakeSubsystem extends SubsystemBase {
 
     private final SparkMax m_NeoIntake = new SparkMax(DriveConstants.kNeoIntakePort, com.revrobotics.spark.SparkLowLevel.MotorType.kBrushless);
     private final SparkMax m_IntakeElevar = new SparkMax(DriveConstants.kIntakeArmPort, com.revrobotics.spark.SparkLowLevel.MotorType.kBrushless);   
-    private final SparkClosedLoopController m_armIntakeController; 
-    public final RelativeEncoder armEncoder;
+
     public IntakeSubsystem() { 
       SparkBaseConfig intakeConfig = new SparkMaxConfig();
-      intakeConfig.idleMode(SparkBaseConfig.IdleMode.kCoast);
-      intakeConfig.inverted(true);
-      
-      
+        intakeConfig
+          .idleMode(SparkBaseConfig.IdleMode.kCoast)
+          .smartCurrentLimit(30)
+          .inverted(true);
+
       SparkBaseConfig intakeElevarConfig = new SparkMaxConfig();
-      intakeElevarConfig.idleMode(SparkBaseConfig.IdleMode.kBrake);
-      intakeElevarConfig.inverted(false);
-      intakeElevarConfig.closedLoop
-        .p(0.01)
-        .i(0)
-        .d(0);
-      
-      intakeElevarConfig.encoder.positionConversionFactor(3); 
+        intakeElevarConfig
+          .idleMode(SparkBaseConfig.IdleMode.kCoast)
+          .inverted(false)
+          .smartCurrentLimit(30);
+
+      intakeElevarConfig.encoder.positionConversionFactor(15.0); 
 
       m_NeoIntake.configure(intakeConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
       m_IntakeElevar.configure(intakeElevarConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-
-        
-      armEncoder = m_IntakeElevar.getEncoder();
-      armEncoder.setPosition(120);
-      m_armIntakeController = m_IntakeElevar.getClosedLoopController();
+      
+      m_IntakeElevar.getEncoder().setPosition(0);
     }
+
     public void runIntake() {
-        m_NeoIntake.set(0.5);
+        m_NeoIntake.set(TunableConstants.intakeSpeed);
     }
 
     public void stopIntake() {
-        m_NeoIntake.set(0);
-    }
-
-    public void setIntakeElevarAngle(double angle) {
-      m_armIntakeController.setSetpoint(angle, ControlType.kPosition);
-    }
-    public Command setArmAngleCommand(double targetDegrees) {
-        return this.run(() -> setIntakeElevarAngle(targetDegrees));
-    }
-    public void runIntakeElevar() {
-        m_IntakeElevar.set(0.2);
-    }
-
-    public void stopIntakeElevar() {
-        m_IntakeElevar.set(0);
+        m_NeoIntake.stopMotor();
     }
 
     public Command runIntakeCommand() {
@@ -76,16 +54,33 @@ public class IntakeSubsystem extends SubsystemBase {
         return this.run(this::stopIntake);
       }
 
-      // Nuevo comando útil: Parar
-    public Command runIntakeElevarCommand() {
-        return this.runOnce(this::runIntakeElevar);
+    public void runIntakeArm() {
+        m_IntakeElevar.set(TunableConstants.intakeElevarSpeed);
+    }
+
+    public void runIntakeArmReverse() {
+        m_IntakeElevar.set(TunableConstants.intakeElevarSpeedReverse);
+    }
+
+    public void stopIntakeArm() {
+        m_IntakeElevar.stopMotor();
+    }
+
+    public Command runIntakeArmCommand() {
+        return this.runOnce(this::runIntakeArm);
       }
 
-    public Command stopIntakeElevarCommand() {
-        return this.runOnce(this::stopIntakeElevar);
+    public Command runIntakeArmReverseCommand() {
+      return this.runOnce(this::runIntakeArmReverse);
+    }
+
+    public Command stopIntakeArmCommand() {
+        return this.runOnce(this::stopIntakeArm);
       }
 
+    @Override
     public void periodic() {
-        
+        SmartDashboard.putNumber("Intake Arm Angle", m_IntakeElevar.getEncoder().getPosition());
+        SmartDashboard.putNumber("Intake Motor Temp (C)", m_IntakeElevar.getMotorTemperature());
     }
 }
