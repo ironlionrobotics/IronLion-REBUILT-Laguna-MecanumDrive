@@ -4,13 +4,16 @@ import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.Commands.AutoAlignCommand;
+import frc.robot.Commands.AutoShootCommand;
 import frc.robot.Constants.DriveConstants;
 import frc.robot.Constants.TunableConstants;
 import frc.robot.Subsystems.ClimberSubsystem;
@@ -27,8 +30,8 @@ public class RobotContainer {
     private final ClimberSubsystem m_ClimberSubsystem = new ClimberSubsystem();
     
     private final CommandXboxController m_joystickMechanismsController = new CommandXboxController(DriveConstants.kJoystickPort);
-    private final CommandJoystick m_joystickDriverController = new CommandJoystick(DriveConstants.kJoystick_Cool_Port);
-    private final CommandXboxController m_playjoystickDriverController = new CommandXboxController(DriveConstants.kJoystick_Cool_Port);
+    private final CommandXboxController m_joystickDriverController = new CommandXboxController(DriveConstants.kJoystick_Cool_Port);
+    private final CommandXboxController m_playjoystickDriverController = new CommandXboxController(DriveConstants.kPlayJoystick_Cool_Port);
 
     public SendableChooser<Command> autoChooser;
 
@@ -39,46 +42,24 @@ public class RobotContainer {
         // --- PATHPLANNER NAMED COMMANDS ---
         NamedCommands.registerCommand("StartIntake", m_IntakeSubsystem.runIntakeCommand());
         NamedCommands.registerCommand("StopIntake", m_IntakeSubsystem.stopIntakeCommand());
-        NamedCommands.registerCommand("RPMShooter", m_ShooterSubsystem.setShooterRPMCommand(2000));
-        NamedCommands.registerCommand("Start IndexerAndFeeder", m_ShooterSubsystem.runIndexerAndFeederCommand());
-        NamedCommands.registerCommand("StopShooter", m_ShooterSubsystem.stopShooterCommand());
         NamedCommands.registerCommand("Arm Elevate", m_IntakeSubsystem.runIntakeArmCommand());
         NamedCommands.registerCommand("Arm Down", m_IntakeSubsystem.runIntakeArmReverseCommand());
         NamedCommands.registerCommand("Stop Arm", m_IntakeSubsystem.stopIntakeArmCommand());
+        NamedCommands.registerCommand("AutoShoot", new AutoShootCommand(m_ShooterSubsystem, m_VisionSubsystem));
+        NamedCommands.registerCommand("StopShooter", m_ShooterSubsystem.stopShooterCommand());
 
         m_DriveSubsystem.configureAutoBuilder();
         autoChooser = AutoBuilder.buildAutoChooser();
         SmartDashboard.putData("Auto Chooser", autoChooser);
 
-        // DEFAULT DRIVE COMMAND
+        // DEFAULT DRIVE COMMAND (Xbox Controller)
         m_DriveSubsystem.setDefaultCommand(
                 new RunCommand(
                     () -> {
-                        double deadZone = 0.5; // Fixed deadband to feel responsive
-                        double avanzar = -MathUtil.applyDeadband(m_joystickDriverController.getY(), deadZone) * 3.0; 
-                        double lateral = -MathUtil.applyDeadband(m_joystickDriverController.getX(), deadZone) * 5.0;
-                        double rotate = MathUtil.applyDeadband(m_joystickDriverController.getZ(), deadZone) * 3.0;
-
-                        edu.wpi.first.math.kinematics.ChassisSpeeds velocidades = 
-                            edu.wpi.first.math.kinematics.ChassisSpeeds.fromFieldRelativeSpeeds(
-                                avanzar, 
-                                lateral,
-                                rotate, 
-                                m_DriveSubsystem.getHeading()
-                            );
-
-                        m_DriveSubsystem.driveRobotRelative(velocidades);
-                    },
-                    m_DriveSubsystem
-                )   
-        );
-        m_DriveSubsystem.setDefaultCommand(
-                new RunCommand(
-                    () -> {
-                        double deadZone = 0.2;
+                        double deadZone = 0.10; // Responsive deadband
                         double avanzar = -MathUtil.applyDeadband(-m_playjoystickDriverController.getLeftY(), deadZone) * 3.0; 
                         double lateral = -MathUtil.applyDeadband(m_playjoystickDriverController.getLeftX(), deadZone) * 5.0;
-                        double rotate = MathUtil.applyDeadband(m_playjoystickDriverController.getRightX(), deadZone) * 3.0;
+                        double rotate = -MathUtil.applyDeadband(m_playjoystickDriverController.getRightX(), deadZone) * 3.0;
 
                         edu.wpi.first.math.kinematics.ChassisSpeeds velocidades = 
                             edu.wpi.first.math.kinematics.ChassisSpeeds.fromFieldRelativeSpeeds(
@@ -119,6 +100,9 @@ public class RobotContainer {
         m_joystickMechanismsController.start()
             .onTrue(m_IntakeSubsystem.runIntakeArmCommand()) 
             .onFalse(m_IntakeSubsystem.stopIntakeArmCommand()); 
+
+        m_playjoystickDriverController.start()
+            .onTrue(Commands.runOnce(() -> m_DriveSubsystem.resetOdometry(new Pose2d())));
             
         // --- LIMELIGHT AUTO AIM ---
         m_playjoystickDriverController.leftBumper()
@@ -132,14 +116,6 @@ public class RobotContainer {
             );
         
         // --- CLIMBER ---
-        m_joystickDriverController.button(7)
-            .onTrue(m_ClimberSubsystem.runClimberCommand())
-            .onFalse(m_ClimberSubsystem.stopClimberCommand());
-        
-        m_joystickDriverController.button(8)
-            .onTrue(m_ClimberSubsystem.runClimberReverseCommand())
-            .onFalse(m_ClimberSubsystem.stopClimberCommand());
-
         m_playjoystickDriverController.a()
             .onTrue(m_ClimberSubsystem.runClimberCommand())
             .onFalse(m_ClimberSubsystem.stopClimberCommand());
@@ -148,10 +124,9 @@ public class RobotContainer {
             .onTrue(m_ClimberSubsystem.runClimberReverseCommand())
             .onFalse(m_ClimberSubsystem.stopClimberCommand());
 
+        // --- AIM BOT / AUTO SHOOT ---
         m_playjoystickDriverController.leftTrigger()    
-            .whileTrue(m_ShooterSubsystem.autoShootCommand(() -> m_VisionSubsystem.getTy()))
-            .onFalse(m_ShooterSubsystem.stopShooterCommand());
-
+            .whileTrue(new AutoShootCommand(m_ShooterSubsystem, m_VisionSubsystem));
     }
 
     public Command getAutonomousCommand() {
