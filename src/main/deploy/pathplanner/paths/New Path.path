@@ -3,25 +3,25 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 4.311001788908766,
-        "y": 7.304418604651163
+        "x": 2.0,
+        "y": 7.0
       },
       "prevControl": null,
       "nextControl": {
-        "x": 3.002921679170019,
-        "y": 7.3443259494962945
+        "x": 3.808145161290323,
+        "y": 7.743459677419356
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 2.767871427928708,
-        "y": 6.411240178846291
+        "x": 3.0614213197969544,
+        "y": 6.186692047377327
       },
       "prevControl": {
-        "x": 3.559036753704039,
-        "y": 6.918858069371846
+        "x": 2.0614213197969544,
+        "y": 6.186692047377327
       },
       "nextControl": null,
       "isLocked": false,
@@ -33,21 +33,15 @@
   "pointTowardsZones": [],
   "eventMarkers": [
     {
-      "name": "Arm Down",
-      "waypointRelativePos": 0.20952380952380992,
-      "endWaypointRelativePos": 0.278571428571429,
+      "name": "RPMShooter",
+      "waypointRelativePos": 0.6638576779026224,
+      "endWaypointRelativePos": 0.8436329588014978,
       "command": {
         "type": "named",
         "data": {
-          "name": "Stop Arm"
+          "name": "StopShooter"
         }
       }
-    },
-    {
-      "name": "StartShooter",
-      "waypointRelativePos": 1.0,
-      "endWaypointRelativePos": null,
-      "command": null
     }
   ],
   "globalConstraints": {
@@ -59,14 +53,14 @@
     "unlimited": false
   },
   "goalEndState": {
-    "velocity": 2.0,
-    "rotation": 45.0
+    "velocity": 0,
+    "rotation": 17.331553375076535
   },
   "reversed": false,
   "folder": null,
   "idealStartingState": {
-    "velocity": 2.0,
-    "rotation": 0.0
+    "velocity": 0,
+    "rotation": 37.89391903856764
   },
   "useDefaultConstraints": true
 }

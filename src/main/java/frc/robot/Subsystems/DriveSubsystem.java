@@ -24,6 +24,7 @@ import edu.wpi.first.math.kinematics.MecanumDriveWheelPositions;
 import edu.wpi.first.math.kinematics.MecanumDriveWheelSpeeds;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.DriveConstants;
@@ -49,7 +50,7 @@ public class DriveSubsystem extends SubsystemBase  {
     public static final Translation2d m_backRightLocation = new Translation2d(-0.31, -0.21);
     
     public final SimpleMotorFeedforward m_feedforward = new SimpleMotorFeedforward(DriveConstants.kS, DriveConstants.kV, DriveConstants.kA);
-
+    private final Field2d field2d = new Field2d();
     public static final MecanumDriveKinematics m_kinematics = 
       new MecanumDriveKinematics(
         m_frontLeftLocation, m_frontRightLocation, m_backLeftLocation, m_backRightLocation
@@ -235,5 +236,7 @@ public class DriveSubsystem extends SubsystemBase  {
       updateVisionOdometry();
       SmartDashboard.putNumber("Robot X", getPose().getX());
       SmartDashboard.putNumber("Robot Y", getPose().getY());
+      field2d.setRobotPose(getPose());
+      SmartDashboard.putData(field2d);
   }
 }

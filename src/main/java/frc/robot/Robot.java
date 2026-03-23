@@ -9,6 +9,7 @@ import com.revrobotics.ResetMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.spark.config.SparkBaseConfig;
 
+import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -25,7 +26,7 @@ public class Robot extends TimedRobot {
      * Constructor del Robot. Se llama una sola vez al iniciar el programa.
      */
     public Robot() {
-        motorConfig();  
+        DriveSubsystem.motorConfig();  
 
     }
     @Override
@@ -35,6 +36,7 @@ public class Robot extends TimedRobot {
     @Override
     public void robotInit() {
         m_robotContainer = new RobotContainer();
+        CameraServer.startAutomaticCapture();
         resetEncoders();
         //TODO: SET path for signal logger
         CommandScheduler.getInstance().schedule(FollowPathCommand.warmupCommand());
@@ -97,30 +99,6 @@ public class Robot extends TimedRobot {
         DriveSubsystem.m_rearRight.getEncoder().setPosition(0);
         DriveSubsystem.m_gyro.setYaw(0);
         DriveSubsystem.m_gyro.reset();
-    }
-
-    public void motorConfig() {
-        SparkMaxConfig commmConfig = new SparkMaxConfig();
-        commmConfig.idleMode(SparkBaseConfig.IdleMode.kBrake);
-        commmConfig.encoder
-            .positionConversionFactor(DriveConstants.conversionFactor)
-            .velocityConversionFactor(DriveConstants.conversionFactor / 60.0); // conversion a metros por segundo
-        // Invertir los motores del lado izquierdo.        
-        SparkBaseConfig leftConfig = new SparkMaxConfig().idleMode(SparkMaxConfig.IdleMode.kBrake);
-        leftConfig.apply(commmConfig);
-        leftConfig.inverted(false);
-        
-        SparkBaseConfig rightConfig = new SparkMaxConfig().idleMode(SparkMaxConfig.IdleMode.kBrake);
-        rightConfig.apply(commmConfig);
-        rightConfig.inverted(true);
-
-        // El lado que se invierte depende del cableado y mecanica del robot.
-        DriveSubsystem.m_frontLeft.configure(leftConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-        DriveSubsystem.m_rearLeft.configure(leftConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-
-        DriveSubsystem.m_frontRight.configure(rightConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-        DriveSubsystem.m_rearRight.configure(rightConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-
     }
        
 }

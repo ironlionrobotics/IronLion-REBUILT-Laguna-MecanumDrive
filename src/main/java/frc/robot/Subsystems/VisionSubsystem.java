@@ -1,5 +1,6 @@
 package frc.robot.Subsystems;
 
+import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.LimelightHelpers;
@@ -9,6 +10,7 @@ public class VisionSubsystem extends SubsystemBase {
 
     public VisionSubsystem(DriveSubsystem driveSubsystem) {
         m_driveSubsystem = driveSubsystem;
+        CameraServer.startAutomaticCapture();
     }
     
     public void processLimelight(String cameraName) {
@@ -22,17 +24,24 @@ public class VisionSubsystem extends SubsystemBase {
             }
         }
     }
-
+    public String getActiveCamera() {       
+        if (LimelightHelpers.getTV("RightCamera")) {
+            return "RightCamera";
+        } else if (LimelightHelpers.getTV("LeftCamera")) {
+            return "LeftCamera";
+        }
+        return "LeftCamera"; // Default fallback if neither see anything
+    }
     public double getTx() {
-        return LimelightHelpers.getTX("CAM1");
+        return LimelightHelpers.getTX("LeftCamera");
     }
 
     public double getTy() {
-        return LimelightHelpers.getTY("CAM1"); // Fixed to TY
+        return LimelightHelpers.getTY("LeftCamera"); // Fixed to TY
     }
 
     public boolean hasTarget() {
-        return LimelightHelpers.getTV("CAM1");
+        return LimelightHelpers.getTV("LeftCamera");
     }
     
     public double getDistanceToTarget() {
@@ -41,7 +50,9 @@ public class VisionSubsystem extends SubsystemBase {
     
     @Override
     public void periodic() {
-        processLimelight("CAM1"); // Ensure vision is processed
+        processLimelight("LeftCamera"); 
+        processLimelight("RightCamera"); 
+
         SmartDashboard.putBoolean("Limelight Has Target", hasTarget());
         SmartDashboard.putNumber("Limelight X Error", getTx());
         SmartDashboard.putNumber("Limelight Y Error", getTy());

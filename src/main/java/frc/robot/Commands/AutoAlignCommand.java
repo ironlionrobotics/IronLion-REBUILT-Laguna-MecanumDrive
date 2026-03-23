@@ -12,43 +12,52 @@ import java.util.function.DoubleSupplier;
 public class AutoAlignCommand extends Command {
     private final DriveSubsystem m_drive;
     private final VisionSubsystem m_vision;
+
     private final PIDController m_rotationPID;
+    private final PIDController m_distancePID;
 
     private final DoubleSupplier m_avanzarSupplier;
     private final DoubleSupplier m_lateralSupplier;
 
-    public AutoAlignCommand(DriveSubsystem driveSubsystem, VisionSubsystem visionSubsystem, DoubleSupplier avanzarSupplier, DoubleSupplier lateralSupplier) {
+    public AutoAlignCommand(DriveSubsystem driveSubsystem, VisionSubsystem visionSubsystem, DoubleSupplier avanzarSupplier, DoubleSupplier lateralSupplier) {   
         m_drive = driveSubsystem;
         m_vision = visionSubsystem;
-        m_avanzarSupplier = avanzarSupplier;
         m_lateralSupplier = lateralSupplier;
+        m_avanzarSupplier = avanzarSupplier;
 
         m_rotationPID = new PIDController(
             VisionConstants.kAlignP,
             VisionConstants.kAlignI,
             VisionConstants.kAlignD
         );
-
-        m_rotationPID.setSetpoint(0.0);
+        m_rotationPID.setSetpoint(0.0); // We always want tx to be 0
         m_rotationPID.setTolerance(VisionConstants.kAlignTolerance);
+
+        m_distancePID = new PIDController(
+            VisionConstants.kDistanceP,
+            VisionConstants.kDistanceI,
+            VisionConstants.kDistanceD
+        );
+        m_distancePID.setSetpoint(VisionConstants.kTargetTy); 
+        m_distancePID.setTolerance(VisionConstants.kDistanceTolerance);
 
         addRequirements(m_drive);
     }
 
     @Override
     public void execute() {
-        double deadZone = 0.10; // Match the new standard deadband
+        double deadZone = 0.2; // Match the new standard deadband
         
         // 1. Let the driver control forward/backward and side-to-side ALWAYS
-        double avanzar = -MathUtil.applyDeadband(m_avanzarSupplier.getAsDouble(), deadZone) * 3.0; 
         double lateral = -MathUtil.applyDeadband(m_lateralSupplier.getAsDouble(), deadZone) * 3.0;
         
         // 2. Default rotation to 0
         double rotate = 0.0;
-        
+        double avanzar = 0.0;
         // 3. ONLY override rotation if Limelight sees the target
         if (m_vision.hasTarget()) {
            rotate = m_rotationPID.calculate(m_vision.getTx());
+           
         }
         
         // 4. Build the chassis speeds and send them to the drivetrain
@@ -63,11 +72,11 @@ public class AutoAlignCommand extends Command {
     }
 
     public boolean isAligned() {
-        return m_vision.hasTarget() && m_rotationPID.atSetpoint();
+        return m_vision.hasTarget() && m_rotationPID.atSetpoint() && m_distancePID.atSetpoint();
     }
     
     @Override
     public void end(boolean interrupted) {
-        m_drive.driveRobotRelative(new ChassisSpeeds(0, 0, 0));
+        m_drive.driveRobotRelative(new ChassisSpeeds(0,0,0));
     }
 }
