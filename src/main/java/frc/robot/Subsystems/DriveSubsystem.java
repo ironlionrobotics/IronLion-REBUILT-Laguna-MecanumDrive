@@ -209,7 +209,7 @@ public class DriveSubsystem extends SubsystemBase  {
     }
     
     public void updateVisionOdometry() {
-        LimelightHelpers.PoseEstimate limelightMeasurement = LimelightHelpers.getBotPoseEstimate_wpiBlue("CAM1");
+        LimelightHelpers.PoseEstimate limelightMeasurement = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2("LeftCamera");
 
         if (limelightMeasurement != null && limelightMeasurement.tagCount > 0) {
             double xyStds = 0.5; 
@@ -234,8 +234,6 @@ public class DriveSubsystem extends SubsystemBase  {
   public void periodic() {
       updateOdometry(); 
       updateVisionOdometry();
-      SmartDashboard.putNumber("Robot X", getPose().getX());
-      SmartDashboard.putNumber("Robot Y", getPose().getY());
       field2d.setRobotPose(getPose());
       SmartDashboard.putData(field2d);
   }

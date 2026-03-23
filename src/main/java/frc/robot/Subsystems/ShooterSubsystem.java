@@ -20,7 +20,7 @@ public class ShooterSubsystem extends SubsystemBase {
     private final SparkMax m_NEOshooter = new SparkMax(DriveConstants.kNeoShooterPort, com.revrobotics.spark.SparkLowLevel.MotorType.kBrushless);
     private final SparkClosedLoopController m_shooterController; 
     
-    private double m_targetRPM = 0.0; 
+    private double m_targetRPM = 3000; 
 
     // Create the Interpolating Tree
     private final InterpolatingDoubleTreeMap m_rpmMap = new InterpolatingDoubleTreeMap();
@@ -56,10 +56,10 @@ public class ShooterSubsystem extends SubsystemBase {
         // --- SHOOTER CALIBRATION DATA ---
         // Format: m_rpmMap.put(Limelight_TY_Angle, Target_RPM);
         // INSTRUCTIONS: Tune these numbers physically on the carpet! 
-        m_rpmMap.put(15.0, 2000.0); // Very close to the speaker
-        m_rpmMap.put(5.0, 2500.0);  // Mid-range
-        m_rpmMap.put(-2.0, 3100.0); // Far away
-        m_rpmMap.put(-10.0, 4200.0); // Maximum distance
+        m_rpmMap.put(15.0, 0.4); // Very close to the speaker
+        m_rpmMap.put(5.0, 0.6);  // Mid-range
+        m_rpmMap.put(-2.0, 0.8); // Far away
+        m_rpmMap.put(-10.0,1.0); // Maximum distance
     }
 
     /**
@@ -75,11 +75,12 @@ public class ShooterSubsystem extends SubsystemBase {
     }
 
     public void runShooter() {
+        m_targetRPM = 0.0;
+
         m_NEOshooter.set(TunableConstants.shooterSpeed);
     }
 
     public void stopShooter() {
-        m_targetRPM = 0.0;
         m_NEOshooter.stopMotor();
     }
 
@@ -122,6 +123,11 @@ public class ShooterSubsystem extends SubsystemBase {
     public void periodic() {
         SmartDashboard.putNumber("Shooter RPM", m_NEOshooter.getEncoder().getVelocity());
         SmartDashboard.putNumber("Shooter TARGET RPM", m_targetRPM);
-        SmartDashboard.putBoolean("Shooter Is At Speed", isAtSpeed());
+        
+        // NEW: Show the raw percentage power (0.0 to 1.0) going to the motors
+        SmartDashboard.putNumber("Shooter Raw Power", m_NEOshooter.getAppliedOutput());
+        
+        SmartDashboard.putBoolean("Shooter Is At Speed", isAtSpeed());    
+        
     }
 }

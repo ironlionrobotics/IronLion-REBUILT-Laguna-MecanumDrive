@@ -4,6 +4,7 @@ import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -32,6 +33,8 @@ public class RobotContainer {
     private final CommandXboxController m_joystickMechanismsController = new CommandXboxController(DriveConstants.kJoystickPort);
     private final CommandXboxController m_joystickDriverController = new CommandXboxController(DriveConstants.kJoystick_Cool_Port);
     private final CommandXboxController m_playjoystickDriverController = new CommandXboxController(DriveConstants.kPlayJoystick_Cool_Port);
+    
+    private final SlewRateLimiter m_strafeLimiter = new SlewRateLimiter(3.0);
 
     public SendableChooser<Command> autoChooser;
 
@@ -53,20 +56,25 @@ public class RobotContainer {
         SmartDashboard.putData("Auto Chooser", autoChooser);
 
         // DEFAULT DRIVE COMMAND (Xbox Controller)
+// DEFAULT DRIVE COMMAND (Xbox Controller)
         m_DriveSubsystem.setDefaultCommand(
                 new RunCommand(
                     () -> {
-                        double deadZone = 0.10; // Responsive deadband
-                        double avanzar = -MathUtil.applyDeadband(-m_playjoystickDriverController.getLeftY(), deadZone) * 3.0; 
-                        double lateral = -MathUtil.applyDeadband(m_playjoystickDriverController.getLeftX(), deadZone) * 5.0;
-                        double rotate = -MathUtil.applyDeadband(m_playjoystickDriverController.getRightX(), deadZone) * 3.0;
+                        double deadZone = 0.10; 
+                        
+                        double avanzar = MathUtil.applyDeadband(-m_playjoystickDriverController.getLeftY(), deadZone) * 3.0; 
+                        
+                        double rawLateral = MathUtil.applyDeadband(m_playjoystickDriverController.getLeftX(), deadZone);
+                        double lateral = m_strafeLimiter.calculate(rawLateral) * 2.0;
+                        
+                        double rotate = MathUtil.applyDeadband(m_playjoystickDriverController.getRightX(), deadZone) * 3.0;
 
+                        // --- NEW: ROBOT-ORIENTED MATH ---
                         edu.wpi.first.math.kinematics.ChassisSpeeds velocidades = 
-                            edu.wpi.first.math.kinematics.ChassisSpeeds.fromFieldRelativeSpeeds(
+                            new edu.wpi.first.math.kinematics.ChassisSpeeds(
                                 avanzar, 
                                 lateral,
-                                rotate, 
-                                m_DriveSubsystem.getHeading()
+                                rotate
                             );
 
                         m_DriveSubsystem.driveRobotRelative(velocidades);
@@ -100,6 +108,8 @@ public class RobotContainer {
         m_joystickMechanismsController.start()
             .onTrue(m_IntakeSubsystem.runIntakeArmCommand()) 
             .onFalse(m_IntakeSubsystem.stopIntakeArmCommand()); 
+
+            // reset pose
 
         m_playjoystickDriverController.start()
             .onTrue(Commands.runOnce(() -> m_DriveSubsystem.resetOdometry(new Pose2d())));
