@@ -7,7 +7,13 @@
         {
           "type": "path",
           "data": {
-            "pathName": "trench to idk"
+            "pathName": "middle"
+          }
+        },
+        {
+          "type": "parallel",
+          "data": {
+            "commands": []
           }
         }
       ]

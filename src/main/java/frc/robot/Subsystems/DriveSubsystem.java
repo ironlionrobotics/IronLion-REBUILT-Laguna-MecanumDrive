@@ -49,21 +49,23 @@ public class DriveSubsystem extends SubsystemBase  {
     public static final Translation2d m_backLeftLocation = new Translation2d(-0.31, 0.21);
     public static final Translation2d m_backRightLocation = new Translation2d(-0.31, -0.21);
     
+    private final Field2d m_field = new Field2d();
+    
     public final SimpleMotorFeedforward m_feedforward = new SimpleMotorFeedforward(DriveConstants.kS, DriveConstants.kV, DriveConstants.kA);
-    private final Field2d field2d = new Field2d();
+
     public static final MecanumDriveKinematics m_kinematics = 
       new MecanumDriveKinematics(
         m_frontLeftLocation, m_frontRightLocation, m_backLeftLocation, m_backRightLocation
       );
           
     public edu.wpi.first.math.geometry.Rotation2d getHeading() {
-      return m_gyro.getRotation2d(); 
+      return m_gyro.getRotation2d(); //todo: unary minus removed 
     }
     
-    public static final MecanumDrivePoseEstimator m_poseEstimator =
+    public final MecanumDrivePoseEstimator m_poseEstimator =
       new MecanumDrivePoseEstimator(
           m_kinematics,
-          m_gyro.getRotation2d(),
+          getHeading(),
           getCurrentDistances(),
           Pose2d.kZero,
           VecBuilder.fill(0.05, 0.05, Units.degreesToRadians(5)),
@@ -71,7 +73,9 @@ public class DriveSubsystem extends SubsystemBase  {
         );
 
     public DriveSubsystem() {
-        motorConfig(); // Ensure motors are configured on boot
+        motorConfig(); 
+        SmartDashboard.putData("Field", m_field);
+        
     }
 
     public void resetOdometry(Pose2d pose) {
@@ -79,12 +83,12 @@ public class DriveSubsystem extends SubsystemBase  {
         m_rearLeft.getEncoder().setPosition(0);
         m_frontRight.getEncoder().setPosition(0);
         m_rearRight.getEncoder().setPosition(0);
-        m_poseEstimator.resetPosition(m_gyro.getRotation2d(), getCurrentDistances(), pose);
+        m_poseEstimator.resetPosition(getHeading(), getCurrentDistances(), pose);
         m_gyro.setYaw(0);
     }
     
-    public static void updateOdometry() { 
-        m_poseEstimator.update(m_gyro.getRotation2d(), getCurrentDistances());
+    public void updateOdometry() { 
+        m_poseEstimator.update(getHeading(), getCurrentDistances());
     }
 
     public void addVisionMeasurement(Pose2d visionRobotPoseMeters, double timestampSeconds) {
@@ -100,6 +104,8 @@ public class DriveSubsystem extends SubsystemBase  {
     }
 
     public void driveRobotRelative(ChassisSpeeds speeds) {
+      double kStrafeMultiplier = 1.2;
+      speeds.vyMetersPerSecond = speeds.vyMetersPerSecond * kStrafeMultiplier;
       MecanumDriveWheelSpeeds wheelSpeeds = m_kinematics.toWheelSpeeds(speeds);
       wheelSpeeds.desaturate(3); 
       setSpeeds(wheelSpeeds);
@@ -107,7 +113,6 @@ public class DriveSubsystem extends SubsystemBase  {
 
     public static MecanumDriveWheelPositions getCurrentDistances() {
         return new MecanumDriveWheelPositions( 
-            // SparkMax position is ALREADY converted to meters by motorConfig()!
             m_frontLeft.getEncoder().getPosition(),
             m_frontRight.getEncoder().getPosition(),
             m_rearLeft.getEncoder().getPosition(),
@@ -117,7 +122,6 @@ public class DriveSubsystem extends SubsystemBase  {
 
     public MecanumDriveWheelSpeeds getCurrentState() { 
         return new MecanumDriveWheelSpeeds(
-            // SparkMax velocity is ALREADY converted to M/S by motorConfig()!
             m_frontLeft.getEncoder().getVelocity(),
             m_frontRight.getEncoder().getVelocity(),
             m_rearLeft.getEncoder().getVelocity(),
@@ -169,8 +173,8 @@ public class DriveSubsystem extends SubsystemBase  {
           this::getRobotRelativeSpeeds, 
             (speeds, feedforwards) -> driveRobotRelative(speeds), 
             new PPHolonomicDriveController(
-              new PIDConstants(5.0, 0.0, 0.0), // Tuned for heavy mecanum
-              new PIDConstants(4.5, 0.0, 0.0)  // Tuned for heavy mecanum
+              new PIDConstants(5.0, 0.0, 0.0), 
+              new PIDConstants(4.5, 0.0, 0.0)  
             ), 
             config, 
               () -> {
@@ -189,18 +193,21 @@ public class DriveSubsystem extends SubsystemBase  {
     
     public static void motorConfig() {
         SparkMaxConfig commmConfig = new SparkMaxConfig();
-        commmConfig.idleMode(SparkBaseConfig.IdleMode.kBrake);
-        commmConfig.encoder
+        commmConfig.idleMode(SparkBaseConfig.IdleMode.kBrake)
+          .smartCurrentLimit(40)
+          .encoder
             .positionConversionFactor(DriveConstants.conversionFactor)
             .velocityConversionFactor(DriveConstants.conversionFactor / 60.0); 
         
         SparkBaseConfig leftConfig = new SparkMaxConfig().idleMode(SparkMaxConfig.IdleMode.kBrake);
-        leftConfig.apply(commmConfig);
-        leftConfig.inverted(false);
+        leftConfig
+          .apply(commmConfig)
+          .inverted(false);
         
         SparkBaseConfig rightConfig = new SparkMaxConfig().idleMode(SparkMaxConfig.IdleMode.kBrake);
-        rightConfig.apply(commmConfig);
-        rightConfig.inverted(true);
+        rightConfig
+          .apply(commmConfig)
+          .inverted(true);
 
         m_frontLeft.configure(leftConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
         m_rearLeft.configure(leftConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);        
@@ -209,7 +216,7 @@ public class DriveSubsystem extends SubsystemBase  {
     }
     
     public void updateVisionOdometry() {
-        LimelightHelpers.PoseEstimate limelightMeasurement = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2("LeftCamera");
+        LimelightHelpers.PoseEstimate limelightMeasurement = LimelightHelpers.getBotPoseEstimate_wpiBlue("LeftCamera");
 
         if (limelightMeasurement != null && limelightMeasurement.tagCount > 0) {
             double xyStds = 0.5; 
@@ -234,7 +241,7 @@ public class DriveSubsystem extends SubsystemBase  {
   public void periodic() {
       updateOdometry(); 
       updateVisionOdometry();
-      field2d.setRobotPose(getPose());
-      SmartDashboard.putData(field2d);
+
+      m_field.setRobotPose(getPose());
   }
 }

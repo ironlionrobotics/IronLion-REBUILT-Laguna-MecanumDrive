@@ -3,13 +3,13 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 4.311001788908766,
-        "y": 7.304418604651163
+        "x": 4.569543509272467,
+        "y": 7.496091298145506
       },
       "prevControl": null,
       "nextControl": {
-        "x": 3.002921679170019,
-        "y": 7.3443259494962945
+        "x": 2.119998708615858,
+        "y": 7.496091298145506
       },
       "isLocked": false,
       "linkedName": null
@@ -20,8 +20,8 @@
         "y": 6.411240178846291
       },
       "prevControl": {
-        "x": 3.559036753704039,
-        "y": 6.918858069371846
+        "x": 3.5819438274228195,
+        "y": 6.881245097834061
       },
       "nextControl": null,
       "isLocked": false,
@@ -34,8 +34,8 @@
   "eventMarkers": [
     {
       "name": "Arm Down",
-      "waypointRelativePos": 0.20952380952380992,
-      "endWaypointRelativePos": 0.278571428571429,
+      "waypointRelativePos": 0.361348528015188,
+      "endWaypointRelativePos": 0.43542260208926353,
       "command": {
         "type": "named",
         "data": {

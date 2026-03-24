@@ -35,11 +35,11 @@ public class ClimberSubsystem extends SubsystemBase {
     }
 
     public void runClimber() {
-        m_neoClimber.set(0.01);
+        m_neoClimber.set(0.1);
     }
     
     public void runClimberReverse() {
-        m_neoClimber.set(-0.01);
+        m_neoClimber.set(-0.1);
     }
     
     public void stopClimber() {

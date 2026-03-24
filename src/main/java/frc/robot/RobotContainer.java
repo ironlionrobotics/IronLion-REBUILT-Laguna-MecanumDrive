@@ -6,13 +6,15 @@ import com.pathplanner.lib.auto.NamedCommands;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.RunCommand;
-import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Commands.AutoAlignCommand;
 import frc.robot.Commands.AutoShootCommand;
 import frc.robot.Constants.DriveConstants;
@@ -31,10 +33,9 @@ public class RobotContainer {
     private final ClimberSubsystem m_ClimberSubsystem = new ClimberSubsystem();
     
     private final CommandXboxController m_joystickMechanismsController = new CommandXboxController(DriveConstants.kJoystickPort);
-    private final CommandXboxController m_joystickDriverController = new CommandXboxController(DriveConstants.kJoystick_Cool_Port);
     private final CommandXboxController m_playjoystickDriverController = new CommandXboxController(DriveConstants.kPlayJoystick_Cool_Port);
     
-    private final SlewRateLimiter m_strafeLimiter = new SlewRateLimiter(3.0);
+    private final SlewRateLimiter m_strafeLimiter = new SlewRateLimiter(.5); 
 
     public SendableChooser<Command> autoChooser;
 
@@ -50,6 +51,8 @@ public class RobotContainer {
         NamedCommands.registerCommand("Stop Arm", m_IntakeSubsystem.stopIntakeArmCommand());
         NamedCommands.registerCommand("AutoShoot", new AutoShootCommand(m_ShooterSubsystem, m_VisionSubsystem));
         NamedCommands.registerCommand("StopShooter", m_ShooterSubsystem.stopShooterCommand());
+        NamedCommands.registerCommand("StartShooter", m_ShooterSubsystem.runShooterCommand());
+
 
         m_DriveSubsystem.configureAutoBuilder();
         autoChooser = AutoBuilder.buildAutoChooser();
@@ -62,12 +65,12 @@ public class RobotContainer {
                     () -> {
                         double deadZone = 0.10; 
                         
-                        double avanzar = MathUtil.applyDeadband(-m_playjoystickDriverController.getLeftY(), deadZone) * 3.0; 
+                        double avanzar = MathUtil.applyDeadband(-m_playjoystickDriverController.getLeftY(), deadZone) * 1.25; 
                         
-                        double rawLateral = MathUtil.applyDeadband(m_playjoystickDriverController.getLeftX(), deadZone);
-                        double lateral = m_strafeLimiter.calculate(rawLateral) * 2.0;
+                        double lateral = MathUtil.applyDeadband(m_playjoystickDriverController.getLeftX(), deadZone)*1.25;
+                        // double lateral = m_strafeLimiter.calculate(rawLateral) * 1.25;
                         
-                        double rotate = MathUtil.applyDeadband(m_playjoystickDriverController.getRightX(), deadZone) * 3.0;
+                        double rotate = MathUtil.applyDeadband(m_playjoystickDriverController.getRightX(), deadZone)*1.25;
 
                         // --- NEW: ROBOT-ORIENTED MATH ---
                         edu.wpi.first.math.kinematics.ChassisSpeeds velocidades = 
@@ -109,12 +112,49 @@ public class RobotContainer {
             .onTrue(m_IntakeSubsystem.runIntakeArmCommand()) 
             .onFalse(m_IntakeSubsystem.stopIntakeArmCommand()); 
 
-            // reset pose
+        // sequencial commands
+        m_joystickMechanismsController.b()
+            .onTrue(
+                Commands.sequence(
+                    m_ShooterSubsystem.runShooterCommand(),
 
+                    new WaitCommand(2), // time to get shooter's inertia 
+
+                    Commands.repeatingSequence(
+
+                        Commands.parallel(
+                            m_IntakeSubsystem.runIntakeCommand(),
+                            m_ShooterSubsystem.runIndexerAndFeederCommand()
+                        )
+                        .withTimeout(2), // parar DESPUES de 5 seg
+
+                        Commands.parallel(
+                            m_IntakeSubsystem.stopIntakeCommand(),
+                            m_ShooterSubsystem.stopIndexerAndFeederCommand()
+                        ),
+                        new WaitCommand(1)
+                    )
+                )
+            )
+            .onFalse(
+                Commands.parallel(
+                    // 1. Combine both Shooter stops into a single command block
+                    Commands.runOnce(() -> {
+                        m_ShooterSubsystem.stopShooter();
+                        m_ShooterSubsystem.stopIndexerAndFeeder();
+                    }, m_ShooterSubsystem), // Require the subsystem once here!
+                    
+                    // 2. Stop the Intake (Different subsystem, so parallel is safe)
+                    m_IntakeSubsystem.stopIntakeCommand()
+                )
+            );
+
+  
+        // reset pose
         m_playjoystickDriverController.start()
             .onTrue(Commands.runOnce(() -> m_DriveSubsystem.resetOdometry(new Pose2d())));
             
-        // --- LIMELIGHT AUTO AIM ---
+        // --- LIMELIGHT AUTO AIM ONLY ROTATE ---
         m_playjoystickDriverController.leftBumper()
             .whileTrue(
                 new AutoAlignCommand(
@@ -124,19 +164,42 @@ public class RobotContainer {
                     () -> m_playjoystickDriverController.getRightX()  
                 )
             );
-        
+
         // --- CLIMBER ---
         m_playjoystickDriverController.a()
             .onTrue(m_ClimberSubsystem.runClimberCommand())
             .onFalse(m_ClimberSubsystem.stopClimberCommand());
-        
+
         m_playjoystickDriverController.y()
             .onTrue(m_ClimberSubsystem.runClimberReverseCommand())
             .onFalse(m_ClimberSubsystem.stopClimberCommand());
 
-        // --- AIM BOT / AUTO SHOOT ---
+            // --- AIM BOT / AUTO SHOOT ---
         m_playjoystickDriverController.leftTrigger()    
             .whileTrue(new AutoShootCommand(m_ShooterSubsystem, m_VisionSubsystem));
+
+        m_joystickMechanismsController.povUp() //set shooter speed to 1.0
+            .onTrue(Commands.runOnce(() -> {
+                TunableConstants.shooterSpeed = 1.0;
+                SmartDashboard.putNumber("Tune/ShooterSpeed", TunableConstants.shooterSpeed);
+            }));
+
+        // D-Pad RIGHT: Increment by 0.2 (Max limit of 1.0)
+        m_joystickMechanismsController.povRight()
+            .onTrue(Commands.runOnce(() -> {
+                TunableConstants.shooterSpeed = Math.min(1.0, TunableConstants.shooterSpeed + 0.2);
+                SmartDashboard.putNumber("Tune/ShooterSpeed", TunableConstants.shooterSpeed);
+            }));
+
+        // D-Pad LEFT: Decrement by 0.2 (Min limit of 0.0)
+        m_joystickMechanismsController.povLeft()
+            .onTrue(Commands.runOnce(() -> {
+                TunableConstants.shooterSpeed = Math.max(0.0, TunableConstants.shooterSpeed - 0.2);
+                SmartDashboard.putNumber("Tune/ShooterSpeed", TunableConstants.shooterSpeed);
+            }));
+        new Trigger(() -> m_ShooterSubsystem.isAtSpeed() && m_VisionSubsystem.hasTarget())
+            .whileTrue(Commands.run(() -> m_playjoystickDriverController.getHID().setRumble(RumbleType.kBothRumble, 1.0)))
+            .whileFalse(Commands.runOnce(() -> m_playjoystickDriverController.getHID().setRumble(RumbleType.kBothRumble, 0.0)));
     }
 
     public Command getAutonomousCommand() {

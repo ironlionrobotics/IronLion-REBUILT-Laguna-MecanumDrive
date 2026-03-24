@@ -29,15 +29,11 @@ public class ShooterSubsystem extends SubsystemBase {
         SparkBaseConfig shooterConfig = new SparkMaxConfig();
         shooterConfig.idleMode(SparkBaseConfig.IdleMode.kCoast);
         shooterConfig.inverted(true);
-        shooterConfig.closedLoop
-            .p(0.001) // Increased to help NEOs recover RPM faster between shots
-            .i(0)
-            .d(0);
         
         shooterConfig.closedLoop.feedForward
             .kV(1.0 / 11352.0);
 
-        shooterConfig.smartCurrentLimit(60); 
+        shooterConfig.smartCurrentLimit(30); 
         shooterConfig.encoder.velocityConversionFactor(2); 
         
         m_shooterController = m_NEOshooter.getClosedLoopController();

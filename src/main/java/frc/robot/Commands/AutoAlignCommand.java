@@ -50,7 +50,7 @@ public class AutoAlignCommand extends Command {
         
         // Let the driver control forward/backward and side-to-side ALWAYS
         double avanzar = -MathUtil.applyDeadband(m_avanzarSupplier.getAsDouble(), deadZone) * 3.0;
-        double lateral = -MathUtil.applyDeadband(m_lateralSupplier.getAsDouble(), deadZone) * 5.0;
+        double lateral = MathUtil.applyDeadband(m_lateralSupplier.getAsDouble(), deadZone) * 5.0;
         
         double rotate = 0.0;
 

@@ -33,9 +33,12 @@ public class Robot extends TimedRobot {
     
     @Override
     public void autonomousInit() {
+        LimelightHelpers.setPipelineIndex("LeftCamera", 0);
+        LimelightHelpers.setPipelineIndex("RightCamera", 0);
+
         resetEncoders();
-        m_autonomousCommand = m_robotContainer.getAutonomousCommand();
         
+        m_autonomousCommand = m_robotContainer.getAutonomousCommand();  
         if (m_autonomousCommand != null) {
             CommandScheduler.getInstance().schedule(m_autonomousCommand);
         }
@@ -49,6 +52,10 @@ public class Robot extends TimedRobot {
         if (m_autonomousCommand != null) {
             m_autonomousCommand.cancel();
         }
+
+        LimelightHelpers.setPipelineIndex("LeftCamera", 0); // Pipeline 0 = April Tag Detection
+        
+        LimelightHelpers.setPipelineIndex("RightCamera", 1); // Pipeline 1 = Full-Color Driver View 
     }
 
     @Override

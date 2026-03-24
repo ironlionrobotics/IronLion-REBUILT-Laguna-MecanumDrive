@@ -1,0 +1,77 @@
+{
+  "version": "2025.0",
+  "waypoints": [
+    {
+      "anchor": {
+        "x": 4.5307275320970035,
+        "y": 0.4703994293865924
+      },
+      "prevControl": null,
+      "nextControl": {
+        "x": 3.52151212553495,
+        "y": 0.4703994293865925
+      },
+      "isLocked": false,
+      "linkedName": null
+    },
+    {
+      "anchor": {
+        "x": 1.852425106990014,
+        "y": 0.6127246790299581
+      },
+      "prevControl": {
+        "x": 2.8875178316690437,
+        "y": 0.5997860199714683
+      },
+      "nextControl": null,
+      "isLocked": false,
+      "linkedName": null
+    }
+  ],
+  "rotationTargets": [
+    {
+      "waypointRelativePos": 0.6737305077968826,
+      "rotationDegrees": 0.0
+    }
+  ],
+  "constraintZones": [],
+  "pointTowardsZones": [],
+  "eventMarkers": [
+    {
+      "name": "Arm Down",
+      "waypointRelativePos": 0.5854700854700834,
+      "endWaypointRelativePos": 0.7488129154795833,
+      "command": {
+        "type": "named",
+        "data": {
+          "name": "Stop Arm"
+        }
+      }
+    },
+    {
+      "name": "StartShooter",
+      "waypointRelativePos": 1.0,
+      "endWaypointRelativePos": null,
+      "command": null
+    }
+  ],
+  "globalConstraints": {
+    "maxVelocity": 3.0,
+    "maxAcceleration": 3.0,
+    "maxAngularVelocity": 540.0,
+    "maxAngularAcceleration": 720.0,
+    "nominalVoltage": 12.0,
+    "unlimited": false
+  },
+  "goalEndState": {
+    "velocity": 0.1,
+    "rotation": 87.70938995736147
+  },
+  "reversed": false,
+  "folder": null,
+  "idealStartingState": {
+    "velocity": 0.5,
+    "rotation": 0.0
+  },
+  "useDefaultConstraints": true
+}
