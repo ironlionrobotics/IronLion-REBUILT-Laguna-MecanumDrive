@@ -27,17 +27,11 @@
           "data": {
             "pathName": "middle to center by left"
           }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": null
-          }
         }
       ]
     }
   },
   "resetOdom": true,
-  "folder": null,
+  "folder": "middle paths ",
   "choreoAuto": false
 }

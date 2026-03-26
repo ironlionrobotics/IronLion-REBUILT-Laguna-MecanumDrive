@@ -7,19 +7,19 @@
         {
           "type": "path",
           "data": {
-            "pathName": "middle"
+            "pathName": "Middle start"
           }
         },
         {
-          "type": "parallel",
+          "type": "named",
           "data": {
-            "commands": []
+            "name": "ShootAndStop"
           }
         }
       ]
     }
   },
   "resetOdom": true,
-  "folder": null,
+  "folder": "middle paths ",
   "choreoAuto": false
 }

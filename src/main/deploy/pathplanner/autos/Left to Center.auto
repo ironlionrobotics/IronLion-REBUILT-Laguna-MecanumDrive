@@ -7,7 +7,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "left to hub "
+            "pathName": "Left to hub "
           }
         },
         {
@@ -25,32 +25,13 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Copy of left to hub "
-          }
-        },
-        {
-          "type": "sequential",
-          "data": {
-            "commands": [
-              {
-                "type": "named",
-                "data": {
-                  "name": "ArmDown"
-                }
-              }
-            ]
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "StartIntake"
+            "pathName": "Left hub to centre"
           }
         }
       ]
     }
   },
   "resetOdom": true,
-  "folder": null,
+  "folder": "left paths",
   "choreoAuto": false
 }

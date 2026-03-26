@@ -3,10 +3,35 @@
   "command": {
     "type": "sequential",
     "data": {
-      "commands": []
+      "commands": [
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Right hub"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "ShootAndStop"
+          }
+        },
+        {
+          "type": "wait",
+          "data": {
+            "waitTime": 10.0
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Right hub to center"
+          }
+        }
+      ]
     }
   },
   "resetOdom": true,
-  "folder": null,
+  "folder": "right paths",
   "choreoAuto": false
 }

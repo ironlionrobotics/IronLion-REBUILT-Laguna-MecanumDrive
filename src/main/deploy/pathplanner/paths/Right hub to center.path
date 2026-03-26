@@ -1,0 +1,82 @@
+{
+  "version": "2025.0",
+  "waypoints": [
+    {
+      "anchor": {
+        "x": 2.6416833095577745,
+        "y": 2.7605420827389446
+      },
+      "prevControl": null,
+      "nextControl": {
+        "x": 1.6195292439372326,
+        "y": -0.03420827389443559
+      },
+      "isLocked": false,
+      "linkedName": null
+    },
+    {
+      "anchor": {
+        "x": 4.5307275320970035,
+        "y": 0.5350927246790309
+      },
+      "prevControl": {
+        "x": 3.531095871308997,
+        "y": 0.5622320457863978
+      },
+      "nextControl": {
+        "x": 7.390171184022824,
+        "y": 0.4574607703281026
+      },
+      "isLocked": false,
+      "linkedName": null
+    },
+    {
+      "anchor": {
+        "x": 7.97241084165478,
+        "y": 3.1098858773181166
+      },
+      "prevControl": {
+        "x": 7.830085592011411,
+        "y": 1.2079029957203986
+      },
+      "nextControl": null,
+      "isLocked": false,
+      "linkedName": null
+    }
+  ],
+  "rotationTargets": [
+    {
+      "waypointRelativePos": 1.0115953618552547,
+      "rotationDegrees": 180.0
+    }
+  ],
+  "constraintZones": [],
+  "pointTowardsZones": [],
+  "eventMarkers": [
+    {
+      "name": "ArmDownAndIntake",
+      "waypointRelativePos": 1.4584740040513047,
+      "endWaypointRelativePos": null,
+      "command": null
+    }
+  ],
+  "globalConstraints": {
+    "maxVelocity": 3.0,
+    "maxAcceleration": 3.0,
+    "maxAngularVelocity": 540.0,
+    "maxAngularAcceleration": 720.0,
+    "nominalVoltage": 12.0,
+    "unlimited": false
+  },
+  "goalEndState": {
+    "velocity": 0,
+    "rotation": -172.2348339815748
+  },
+  "reversed": false,
+  "folder": "right path",
+  "idealStartingState": {
+    "velocity": 3.0,
+    "rotation": 117.28399999999999
+  },
+  "useDefaultConstraints": true
+}

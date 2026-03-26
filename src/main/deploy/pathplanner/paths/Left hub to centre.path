@@ -70,8 +70,8 @@
   "pointTowardsZones": [],
   "eventMarkers": [
     {
-      "name": "ShootAndStop",
-      "waypointRelativePos": 0,
+      "name": "ArmDownAndIntake",
+      "waypointRelativePos": 1.5638082376772298,
       "endWaypointRelativePos": null,
       "command": null
     }

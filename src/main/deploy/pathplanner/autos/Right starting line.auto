@@ -7,13 +7,13 @@
         {
           "type": "path",
           "data": {
-            "pathName": "trench to hub LEFT"
+            "pathName": "Right starting line"
           }
         }
       ]
     }
   },
   "resetOdom": true,
-  "folder": null,
+  "folder": "right paths",
   "choreoAuto": false
 }
