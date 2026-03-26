@@ -25,27 +25,21 @@ public class AutoShootCommand extends Command {
     }
 
     @Override
-    public void execute() {
-        if (m_vision.hasTarget()) {
-            double targetAngle = m_vision.getTy();
-            double targetRPM = m_shooter.getCalculatedRPM(targetAngle);
-            
-            m_shooter.setShooterRPM(targetRPM);
-
-            if (m_shooter.isAtSpeed()) {
-                m_shooter.runIndexerAndFeeder();
-                if (!m_isFeeding) {
+        public void execute() {
+            if (m_vision.hasTarget()) {
+                m_shooter.runShooter(); // Sends raw 1.0 Tunable speed
+                
+                // Wait 0.5s for inertia before feeding
+                if (m_feedTimer.hasElapsed(0.5)) {
+                    m_shooter.runIndexerAndFeeder();
                     m_isFeeding = true; 
-                    m_feedTimer.reset(); 
                 }
             } else {
-                m_shooter.stopIndexerAndFeeder(); 
+                m_shooter.stopShooter();
+                m_shooter.stopIndexerAndFeeder();
+                m_feedTimer.reset();
             }
-        } else {
-            m_shooter.runShooter();
-            m_shooter.stopIndexerAndFeeder();
         }
-    }
 
     @Override
     public boolean isFinished() {

@@ -1,0 +1,98 @@
+{
+  "version": "2025.0",
+  "waypoints": [
+    {
+      "anchor": {
+        "x": 2.6474555555555552,
+        "y": 5.6915555555555555
+      },
+      "prevControl": null,
+      "nextControl": {
+        "x": 2.6377111111140454,
+        "y": 7.932777777774897
+      },
+      "isLocked": false,
+      "linkedName": null
+    },
+    {
+      "anchor": {
+        "x": 4.586600000000002,
+        "y": 7.445555555555555
+      },
+      "prevControl": {
+        "x": 3.0861887007317197,
+        "y": 7.4126998336770775
+      },
+      "nextControl": {
+        "x": 5.921588888891824,
+        "y": 7.474788888886008
+      },
+      "isLocked": false,
+      "linkedName": null
+    },
+    {
+      "anchor": {
+        "x": 7.821755555554324,
+        "y": 6.958333333333738
+      },
+      "prevControl": {
+        "x": 7.8022666666653,
+        "y": 7.689166666667071
+      },
+      "nextControl": {
+        "x": 7.835013473264023,
+        "y": 6.4611614192234645
+      },
+      "isLocked": false,
+      "linkedName": null
+    },
+    {
+      "anchor": {
+        "x": 7.821755555554324,
+        "y": 5.486922222222627
+      },
+      "prevControl": {
+        "x": 7.831499999998634,
+        "y": 6.773188888889295
+      },
+      "nextControl": null,
+      "isLocked": false,
+      "linkedName": null
+    }
+  ],
+  "rotationTargets": [
+    {
+      "waypointRelativePos": 0.6226771653543335,
+      "rotationDegrees": 0.0
+    }
+  ],
+  "constraintZones": [],
+  "pointTowardsZones": [],
+  "eventMarkers": [
+    {
+      "name": "ShootAndStop",
+      "waypointRelativePos": 0,
+      "endWaypointRelativePos": null,
+      "command": null
+    }
+  ],
+  "globalConstraints": {
+    "maxVelocity": 3.0,
+    "maxAcceleration": 3.0,
+    "maxAngularVelocity": 540.0,
+    "maxAngularAcceleration": 720.0,
+    "nominalVoltage": 12.0,
+    "unlimited": false
+  },
+  "goalEndState": {
+    "velocity": 0,
+    "rotation": 0.0
+  },
+  "reversed": false,
+  "folder": "left path",
+  "idealStartingState": {
+    "velocity": 0,
+    "rotation": 50.0
+  },
+  "useDefaultConstraints": true
+}

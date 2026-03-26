@@ -1,5 +1,6 @@
 package frc.robot.Subsystems;
 
+import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.LimelightHelpers;
@@ -9,20 +10,14 @@ public class VisionSubsystem extends SubsystemBase {
 
     public VisionSubsystem(DriveSubsystem driveSubsystem) {
         m_driveSubsystem = driveSubsystem;
+        
+        // Setup Video Streams for the Driver Dashboard
+        CameraServer.startAutomaticCapture();
+        CameraServer.addAxisCamera("LeftCamera_Stream", "http://limelight-left.local:5800/stream.mjpg");
+        CameraServer.addAxisCamera("RightCamera_Stream", "http://limelight-right.local:5800/stream.mjpg");
     }
     
-    public void processLimelight(String cameraName) {
-        if (LimelightHelpers.getTV(cameraName)) {
-            LimelightHelpers.PoseEstimate poseEstimate = LimelightHelpers.getBotPoseEstimate_wpiBlue(cameraName);
-
-            if (poseEstimate != null && poseEstimate.tagCount > 0) {
-                m_driveSubsystem.addVisionMeasurement(poseEstimate.pose, poseEstimate.timestampSeconds);
-                SmartDashboard.putNumber(cameraName + "_X", poseEstimate.pose.getX());
-                SmartDashboard.putNumber(cameraName + "_Y", poseEstimate.pose.getY());
-            }
-        }
-    }
-
+    // --- ODOMETRY UPDATES ARE NOW SAFELY HANDLED IN DRIVESUBSYSTEM ---
 
     public double getTx() {
         return LimelightHelpers.getTX("LeftCamera");
@@ -33,9 +28,8 @@ public class VisionSubsystem extends SubsystemBase {
     }
 
     public boolean hasTarget() {
-        LimelightHelpers.setCameraPose_RobotSpace(getName(), getDistanceToTarget(), getDistanceToTarget(), getDistanceToTarget(), getTy(), getTx(), getDistanceToTarget());;
+        // Simply return true if the camera sees any valid target
         return LimelightHelpers.getTV("LeftCamera");
-
     }
     
     public double getDistanceToTarget() {
@@ -44,8 +38,7 @@ public class VisionSubsystem extends SubsystemBase {
     
     @Override
     public void periodic() {
-        processLimelight("LeftCamera"); 
-        processLimelight("RightCamera"); 
+        // Only publish targeting data for the Aim-Bot, no odometry math here!
         SmartDashboard.putBoolean("Limelight Has Target", hasTarget());
         SmartDashboard.putNumber("Limelight X Error", getTx());
         SmartDashboard.putNumber("Limelight Y Error", getTy());

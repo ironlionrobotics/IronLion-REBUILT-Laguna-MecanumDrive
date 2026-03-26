@@ -14,7 +14,7 @@ import frc.robot.Constants.TunableConstants;
 
 public class IntakeSubsystem extends SubsystemBase {
 
-    private final SparkMax m_NeoIntake = new SparkMax(DriveConstants.kNeoIntakePort, com.revrobotics.spark.SparkLowLevel.MotorType.kBrushless);
+    public final SparkMax m_NeoIntake = new SparkMax(DriveConstants.kNeoIntakePort, com.revrobotics.spark.SparkLowLevel.MotorType.kBrushless);
     private final SparkMax m_IntakeElevar = new SparkMax(DriveConstants.kIntakeArmPort, com.revrobotics.spark.SparkLowLevel.MotorType.kBrushless);   
 
     public IntakeSubsystem() { 
@@ -38,10 +38,13 @@ public class IntakeSubsystem extends SubsystemBase {
       m_IntakeElevar.getEncoder().setPosition(0);
     }
 
-    public void runIntake() {
-        m_NeoIntake.set(TunableConstants.intakeSpeed);
-    }
+      public void runIntake() {
+          m_NeoIntake.set(TunableConstants.intakeSpeed);
+      }
 
+      public void runIntakeReverse() {
+          m_NeoIntake.set(TunableConstants.intakeReverseSpeed);
+      }
     public void stopIntake() {
         m_NeoIntake.stopMotor();
     }
@@ -50,6 +53,9 @@ public class IntakeSubsystem extends SubsystemBase {
         return this.run(this::runIntake);
       }
 
+    public Command runIntakeReverseCommand() {
+        return this.run(this::runIntakeReverse);
+      }
     public Command stopIntakeCommand() {
         return this.run(this::stopIntake);
       }

@@ -107,7 +107,7 @@ public class DriveSubsystem extends SubsystemBase  {
       double kStrafeMultiplier = 1.2;
       speeds.vyMetersPerSecond = speeds.vyMetersPerSecond * kStrafeMultiplier;
       MecanumDriveWheelSpeeds wheelSpeeds = m_kinematics.toWheelSpeeds(speeds);
-      wheelSpeeds.desaturate(4.5); 
+      wheelSpeeds.desaturate(4.15); 
       setSpeeds(wheelSpeeds);
     }
 
@@ -173,8 +173,8 @@ public class DriveSubsystem extends SubsystemBase  {
           this::getRobotRelativeSpeeds, 
             (speeds, feedforwards) -> driveRobotRelative(speeds), 
             new PPHolonomicDriveController(
-              new PIDConstants(5.0, 0.0, 0.0), 
-              new PIDConstants(4.5, 0.0, 0.0)  
+              new PIDConstants(2.0, 0.0, 0.0), 
+              new PIDConstants(1.5, 0.0, 0.0)  
             ), 
             config, 
               () -> {
@@ -215,28 +215,42 @@ public class DriveSubsystem extends SubsystemBase  {
         m_rearRight.configure(rightConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
     }
     
-    public void updateVisionOdometry() {
-        LimelightHelpers.PoseEstimate limelightMeasurement = LimelightHelpers.getBotPoseEstimate_wpiBlue("LeftCamera");
-
-        if (limelightMeasurement != null && limelightMeasurement.tagCount > 0) {
-            double xyStds = 0.5; 
-            double degStds = 9999999; 
-
-            if (limelightMeasurement.tagCount >= 2) {
-                xyStds = 0.1; 
-            } 
-            else if (limelightMeasurement.tagCount == 1 && limelightMeasurement.avgTagDist < 2.0) {
-                xyStds = 0.3;
-            } 
-            else {
-                xyStds = 1.0; 
-            }
-
-            m_poseEstimator.setVisionMeasurementStdDevs(VecBuilder.fill(xyStds, xyStds, degStds));
-            m_poseEstimator.addVisionMeasurement(limelightMeasurement.pose, limelightMeasurement.timestampSeconds);
-        }
+  public void updateVisionOdometry() {
+          // Array of all Limelights actively tracking AprilTags
+          String[] cameraNames = {"LeftCamera", "RightCamera"};
+  
+          for (String camera : cameraNames) {
+            LimelightHelpers.SetRobotOrientation(
+              camera, 
+              getHeading().getDegrees(), 
+              0, 0, 0, 0, 0 
+            );
+            LimelightHelpers.PoseEstimate limelightMeasurement = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(camera);
+          
+            if (limelightMeasurement != null && limelightMeasurement.tagCount > 0) {
+                double xyStds = 0.5; 
+                double degStds = 9999999; // Never trust Limelight rotation, trust the Pigeon Gyro!
+            
+                if (limelightMeasurement.tagCount >= 2) {
+                    xyStds = 0.1; // High trust: Multiple tags cancel out ambiguity
+                  } else if (limelightMeasurement.tagCount == 1 && limelightMeasurement.avgTagDist < 2.0) {
+                      xyStds = 0.3; // Medium trust: 1 tag, but it's close
+                  } else {
+                      xyStds = 1.0; // Low trust: 1 tag, far away
+                  }
+                
+                  // Reject extremely noisy single-tag data (optional but highly recommended for Auto)
+                  if (limelightMeasurement.tagCount == 1 && limelightMeasurement.rawFiducials.length > 0) {
+                      if (limelightMeasurement.rawFiducials[0].ambiguity > 0.7) {
+                          continue; // Skip this camera's update if the tag is highly ambiguous
+                      }
+                  }
+                
+                  m_poseEstimator.setVisionMeasurementStdDevs(VecBuilder.fill(xyStds, xyStds, degStds));
+                  m_poseEstimator.addVisionMeasurement(limelightMeasurement.pose, limelightMeasurement.timestampSeconds);
+              }
+          }
       }
-
   @Override
   public void periodic() {
       updateOdometry(); 

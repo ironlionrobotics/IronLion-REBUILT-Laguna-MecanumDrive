@@ -85,6 +85,11 @@ public class ShooterSubsystem extends SubsystemBase {
         m_NEOfeeder.set(TunableConstants.feederSpeed);
     }
 
+    public void runIndexerAndFeederReverse() {
+        m_NEObeltIndexer.set(TunableConstants.beltIndexerReverseSpeed);
+        m_NEOfeeder.set(TunableConstants.feederReverseSpeed);
+    }
+
     public void stopIndexerAndFeeder() {
         m_NEObeltIndexer.stopMotor();
         m_NEOfeeder.stopMotor();
@@ -96,6 +101,10 @@ public class ShooterSubsystem extends SubsystemBase {
 
     public Command runIndexerAndFeederCommand() {
         return this.runOnce(this::runIndexerAndFeeder);
+    }
+
+    public Command runIndexerAndFeederReverseCommand() {
+        return this.runOnce(this::runIndexerAndFeederReverse);
     }
 
     public Command stopIndexerAndFeederCommand() {

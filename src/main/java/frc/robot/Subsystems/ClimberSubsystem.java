@@ -1,65 +1,66 @@
-package frc.robot.Subsystems;
+    package frc.robot.Subsystems;
 
-import com.revrobotics.PersistMode;
-import com.revrobotics.ResetMode;
-import com.revrobotics.spark.SparkMax;
-import com.revrobotics.spark.SparkLowLevel.MotorType;
-import com.revrobotics.spark.config.SparkMaxConfig;
-import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
+    import com.revrobotics.PersistMode;
+    import com.revrobotics.ResetMode;
+    import com.revrobotics.spark.SparkMax;
+    import com.revrobotics.spark.SparkLowLevel.MotorType;
+    import com.revrobotics.spark.config.SparkMaxConfig;
+    import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.SubsystemBase; 
-import frc.robot.Constants.DriveConstants;
+    import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+    import edu.wpi.first.wpilibj2.command.Command;
+    import edu.wpi.first.wpilibj2.command.SubsystemBase; 
+    import frc.robot.Constants.DriveConstants;
 
-public class ClimberSubsystem extends SubsystemBase { 
-    
-    private final SparkMax m_neoClimber = new SparkMax(DriveConstants.kNeoClimberPort, MotorType.kBrushless); 
-    
-    public ClimberSubsystem() {
-        SparkMaxConfig climberConfig = new SparkMaxConfig();
-        climberConfig.encoder.positionConversionFactor(15.0); 
-
-        climberConfig
-            .idleMode(IdleMode.kBrake) 
-            .inverted(false)
-            .smartCurrentLimit(40);
+    public class ClimberSubsystem extends SubsystemBase { 
         
-        climberConfig.softLimit
-            .forwardSoftLimitEnabled(false)
-            .forwardSoftLimit(60.0) 
-            .reverseSoftLimitEnabled(false)
-            .reverseSoftLimit(0.0); 
+        private final SparkMax m_neoClimber = new SparkMax(DriveConstants.kNeoClimberPort, MotorType.kBrushless); 
+        
+        public ClimberSubsystem() {
+            SparkMaxConfig climberConfig = new SparkMaxConfig();
+            climberConfig.encoder.positionConversionFactor(1/15.0); 
 
-        m_neoClimber.configure(climberConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-    }
+            climberConfig
+                .idleMode(IdleMode.kBrake) 
+                .inverted(false)
+                .smartCurrentLimit(40);
+            
+            climberConfig.softLimit
+                .forwardSoftLimitEnabled()
+                .forwardSoftLimit(60.0) 
+                .reverseSoftLimitEnabled(false)
+                .reverseSoftLimit(0.0); 
 
-    public void runClimber() {
-        m_neoClimber.set(0.1);
-    }
-    
-    public void runClimberReverse() {
-        m_neoClimber.set(-0.1);
-    }
-    
-    public void stopClimber() {
-        m_neoClimber.stopMotor();
-    }
+            m_neoClimber.configure(climberConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+            m_neoClimber.getEncoder().setPosition(0.0);
+        }
 
-    public Command runClimberCommand() {
-        return this.run(this::runClimber);
-    }
+        public void runClimber() {
+            m_neoClimber.set(0.2);
+        }
+        
+        public void runClimberReverse() {
+            m_neoClimber.set(-0.2);
+        }
+        
+        public void stopClimber() {
+            m_neoClimber.stopMotor();
+        }
 
-    public Command runClimberReverseCommand() {
-        return this.run(this::runClimberReverse);
-    }
-    
-    public Command stopClimberCommand() {
-        return this.run(this::stopClimber);
-    }
+        public Command runClimberCommand() {
+            return this.run(this::runClimber);
+        }
 
-    @Override
-    public void periodic() {
-        SmartDashboard.putNumber("Spark Max Climber position", m_neoClimber.getEncoder().getPosition());
+        public Command runClimberReverseCommand() {
+            return this.run(this::runClimberReverse);
+        }
+        
+        public Command stopClimberCommand() {
+            return this.run(this::stopClimber);
+        }
+
+        @Override
+        public void periodic() {
+            SmartDashboard.putNumber("Spark Max Climber position", m_neoClimber.getEncoder().getPosition());
+        }
     }
-}

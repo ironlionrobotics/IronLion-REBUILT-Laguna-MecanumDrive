@@ -57,23 +57,24 @@ public class AutoAlignCommand extends Command {
         double rotate = 0.0;
 
         // ONLY override rotation if Limelight sees the target
-        if (m_vision.hasTarget()) {
-            double targetId = LimelightHelpers.getFiducialID("LeftCamera");
-            if (targetId == VisionConstants.kRedHubTag1 || targetId == VisionConstants.kRedHubTag2 || targetId == VisionConstants.kBlueHubTag1 || targetId == VisionConstants.kBlueHubTag2) {
-                rotate = m_rotationPID.calculate(m_vision.getTx());
-            }
+       if (m_vision.hasTarget()) {
+           int targetId = (int) LimelightHelpers.getFiducialID("LeftCamera");
+           // 2026 Hub Tags (Replace with actual IDs from your fmap)
+           boolean isHub = (targetId == VisionConstants.kRedHubTag1 || targetId == VisionConstants.kRedHubTag2 || targetId == VisionConstants.kBlueHubTag1 || targetId == VisionConstants.kBlueHubTag2);
+           
+           if (isHub) {
+               rotate = m_rotationPID.calculate(m_vision.getTx());
+           }
         }
         
-        edu.wpi.first.math.kinematics.ChassisSpeeds velocidades = 
-            edu.wpi.first.math.kinematics.ChassisSpeeds.fromFieldRelativeSpeeds(
-                avanzar, 
-                lateral, 
-                rotate, 
-                m_drive.getHeading()
-            );          
-        m_drive.driveRobotRelative(velocidades);
+            edu.wpi.first.math.kinematics.ChassisSpeeds velocidades = 
+                new edu.wpi.first.math.kinematics.ChassisSpeeds(
+                    avanzar, 
+                    lateral, 
+                    rotate
+                );          
+            m_drive.driveRobotRelative(velocidades);
     }
-
     public boolean isAligned() {
         return m_vision.hasTarget() && m_rotationPID.atSetpoint();
     }

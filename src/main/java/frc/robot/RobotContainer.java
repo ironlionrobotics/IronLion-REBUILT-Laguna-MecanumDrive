@@ -42,13 +42,49 @@ public class RobotContainer {
     public RobotContainer() {
         configureBindings();
         TunableConstants.publishDefaults();
+        Command autoShootSequence = Commands.sequence(
+            // 1. Start the shooter wheels
+            m_ShooterSubsystem.runShooterCommand(),
+            
+            // 2. Wait for the wheels to gain inertia (Adjust this if needed!)
+            new WaitCommand(2.0), 
+            
+            // 3. Fire the indexer and feeder to shove the note into the wheels
+            m_ShooterSubsystem.runIndexerAndFeederCommand(),
+            
+            // 4. Wait for the note to physically leave the robot
+            new WaitCommand(0.5),
+            
+            // 5. Safely turn everything off
+            Commands.runOnce(() -> {
+                m_ShooterSubsystem.stopShooter();
+                m_ShooterSubsystem.stopIndexerAndFeeder();
+            }, m_ShooterSubsystem) // Require the subsystem to prevent command clashing
+        );
 
+        Command indexerSequence = Commands.sequence(
+            m_ShooterSubsystem.runIndexerAndFeederCommand(), // Start the indexer and feeder
+            new WaitCommand(10), // Run for 1 second (adjust as needed)
+            m_ShooterSubsystem.stopIndexerAndFeederCommand() // Stop the indexer and feeder
+            );
+            
+        Command armDownAndIntake = Commands.sequence(
+            m_IntakeSubsystem.runIntakeArmReverseCommand(), // Start the indexer and feeder
+            new WaitCommand(1), // Run for 1 second (adjust as needed)
+            Commands.runOnce(() -> {
+                m_IntakeSubsystem.runIntake();
+                m_IntakeSubsystem.stopIntakeArm();
+            }, m_IntakeSubsystem
+            ));
+            
         // --- PATHPLANNER NAMED COMMANDS ---
-        NamedCommands.registerCommand("StartIntake", m_IntakeSubsystem.runIntakeCommand());
+        NamedCommands.registerCommand("ArmDownAndIntake", armDownAndIntake);
+        NamedCommands.registerCommand("ShootAndStop", autoShootSequence);
+        NamedCommands.registerCommand("IndexerAndFeeder", indexerSequence);
         NamedCommands.registerCommand("StopIntake", m_IntakeSubsystem.stopIntakeCommand());
-        NamedCommands.registerCommand("Arm Elevate", m_IntakeSubsystem.runIntakeArmCommand());
-        NamedCommands.registerCommand("Arm Down", m_IntakeSubsystem.runIntakeArmReverseCommand());
-        NamedCommands.registerCommand("Stop Arm", m_IntakeSubsystem.stopIntakeArmCommand());
+        NamedCommands.registerCommand("ArmElevate", m_IntakeSubsystem.runIntakeArmCommand());
+        NamedCommands.registerCommand("ArmDown", m_IntakeSubsystem.runIntakeArmReverseCommand());
+        NamedCommands.registerCommand("StopArm", m_IntakeSubsystem.stopIntakeArmCommand());
         NamedCommands.registerCommand("AutoShoot", new AutoShootCommand(m_ShooterSubsystem, m_VisionSubsystem));
         NamedCommands.registerCommand("StopShooter", m_ShooterSubsystem.stopShooterCommand());
         NamedCommands.registerCommand("StartShooter", m_ShooterSubsystem.runShooterCommand());
@@ -65,12 +101,12 @@ public class RobotContainer {
                     () -> {
                         double deadZone = 0.10; 
                         
-                        double avanzar = MathUtil.applyDeadband(-m_playjoystickDriverController.getLeftY(), deadZone) * 1.25; 
+                        double avanzar = MathUtil.applyDeadband(m_playjoystickDriverController.getLeftX(), deadZone) * 1.25; 
                         
-                        double lateral = MathUtil.applyDeadband(m_playjoystickDriverController.getLeftX(), deadZone)*1.25;
+                        double lateral = MathUtil.applyDeadband(-m_playjoystickDriverController.getLeftY(), deadZone) * 1.25;
                         // double lateral = m_strafeLimiter.calculate(rawLateral) * 1.25;
-                        
-                        double rotate = MathUtil.applyDeadband(m_playjoystickDriverController.getRightX(), deadZone)*1.25;
+                         
+                        double rotate = MathUtil.applyDeadband(m_playjoystickDriverController.getRightX(), deadZone) * 1.25;
 
                         // --- NEW: ROBOT-ORIENTED MATH ---
                         edu.wpi.first.math.kinematics.ChassisSpeeds velocidades = 
@@ -94,13 +130,22 @@ public class RobotContainer {
             .onFalse(m_ShooterSubsystem.stopShooterCommand());
 
         // --- INDEXER & FEEDER ---
-        m_joystickMechanismsController.leftBumper()
+        m_joystickMechanismsController.leftBumper().and(m_joystickMechanismsController.rightBumper().negate())
             .onTrue(m_ShooterSubsystem.runIndexerAndFeederCommand())
             .onFalse(m_ShooterSubsystem.stopIndexerAndFeederCommand());
 
+        m_joystickMechanismsController.leftBumper().and(m_joystickMechanismsController.rightBumper())
+            .onTrue(m_ShooterSubsystem.runIndexerAndFeederReverseCommand())
+            .onFalse(m_ShooterSubsystem.stopIndexerAndFeederCommand());
+
         // --- INTAKE ---
-        m_joystickMechanismsController.x()
+        m_joystickMechanismsController.x().and(m_joystickMechanismsController.rightBumper().negate())
             .onTrue(m_IntakeSubsystem.runIntakeCommand())
+            .onFalse(m_IntakeSubsystem.stopIntakeCommand());
+
+        // Reverse Intake (Hold Right Bumper AND press X)
+        m_joystickMechanismsController.x().and(m_joystickMechanismsController.rightBumper())
+            .onTrue(m_IntakeSubsystem.runIntakeReverseCommand())
             .onFalse(m_IntakeSubsystem.stopIntakeCommand());
 
         // --- ARM ELEVATION ---
@@ -128,9 +173,10 @@ public class RobotContainer {
                         .withTimeout(5), // parar DESPUES de 5 seg
 
                         Commands.parallel(
-                            m_IntakeSubsystem.stopIntakeCommand(),
-                            m_ShooterSubsystem.stopIndexerAndFeederCommand()
+                            Commands.runOnce(() -> m_IntakeSubsystem.stopIntake(), m_IntakeSubsystem),
+                            Commands.runOnce(() -> m_ShooterSubsystem.stopIndexerAndFeeder(), m_ShooterSubsystem)
                         ),
+
                         new WaitCommand(.5)
                     )
                 )
@@ -159,8 +205,8 @@ public class RobotContainer {
                 new AutoAlignCommand(
                     m_DriveSubsystem, 
                     m_VisionSubsystem, 
-                    () -> -m_playjoystickDriverController.getLeftY(), 
-                    () -> m_playjoystickDriverController.getRightX()  
+                    () -> m_playjoystickDriverController.getRightX(),  
+                    () -> -m_playjoystickDriverController.getLeftY() 
                 )
             );
 
