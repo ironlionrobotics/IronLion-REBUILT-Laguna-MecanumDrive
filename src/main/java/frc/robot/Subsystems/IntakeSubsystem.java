@@ -21,14 +21,14 @@ public class IntakeSubsystem extends SubsystemBase {
       SparkBaseConfig intakeConfig = new SparkMaxConfig();
         intakeConfig
           .idleMode(SparkBaseConfig.IdleMode.kCoast)
-          .smartCurrentLimit(30)
+          .smartCurrentLimit(20)
           .inverted(true);
 
       SparkBaseConfig intakeElevarConfig = new SparkMaxConfig();
         intakeElevarConfig
           .idleMode(SparkBaseConfig.IdleMode.kCoast)
           .inverted(false)
-          .smartCurrentLimit(30);
+          .smartCurrentLimit(20);
 
       intakeElevarConfig.encoder.positionConversionFactor(15.0); 
 

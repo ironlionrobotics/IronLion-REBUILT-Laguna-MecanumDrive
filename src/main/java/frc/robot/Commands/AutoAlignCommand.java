@@ -7,6 +7,8 @@ import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Subsystems.DriveSubsystem;
 import frc.robot.Subsystems.VisionSubsystem;
 import frc.robot.Constants.VisionConstants;
+import frc.robot.LimelightHelpers;
+
 import java.util.function.DoubleSupplier;
 
 public class AutoAlignCommand extends Command {
@@ -49,14 +51,17 @@ public class AutoAlignCommand extends Command {
         double deadZone = 0.10; 
         
         // Let the driver control forward/backward and side-to-side ALWAYS
-        double avanzar = -MathUtil.applyDeadband(m_avanzarSupplier.getAsDouble(), deadZone) * 3.0;
-        double lateral = MathUtil.applyDeadband(m_lateralSupplier.getAsDouble(), deadZone) * 5.0;
+        double avanzar = -MathUtil.applyDeadband(m_avanzarSupplier.getAsDouble(), deadZone);
+        double lateral = MathUtil.applyDeadband(m_lateralSupplier.getAsDouble(), deadZone);
         
         double rotate = 0.0;
 
         // ONLY override rotation if Limelight sees the target
         if (m_vision.hasTarget()) {
-           rotate = m_rotationPID.calculate(m_vision.getTx());
+            double targetId = LimelightHelpers.getFiducialID("LeftCamera");
+            if (targetId == VisionConstants.kRedHubTag1 || targetId == VisionConstants.kRedHubTag2 || targetId == VisionConstants.kBlueHubTag1 || targetId == VisionConstants.kBlueHubTag2) {
+                rotate = m_rotationPID.calculate(m_vision.getTx());
+            }
         }
         
         edu.wpi.first.math.kinematics.ChassisSpeeds velocidades = 

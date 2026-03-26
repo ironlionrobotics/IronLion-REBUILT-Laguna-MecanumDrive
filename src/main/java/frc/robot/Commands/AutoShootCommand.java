@@ -42,7 +42,7 @@ public class AutoShootCommand extends Command {
                 m_shooter.stopIndexerAndFeeder(); 
             }
         } else {
-            m_shooter.setShooterRPM(2000);
+            m_shooter.runShooter();
             m_shooter.stopIndexerAndFeeder();
         }
     }

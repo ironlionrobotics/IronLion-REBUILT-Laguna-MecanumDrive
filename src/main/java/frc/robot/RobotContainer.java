@@ -121,18 +121,17 @@ public class RobotContainer {
                     new WaitCommand(2), // time to get shooter's inertia 
 
                     Commands.repeatingSequence(
-
                         Commands.parallel(
                             m_IntakeSubsystem.runIntakeCommand(),
                             m_ShooterSubsystem.runIndexerAndFeederCommand()
                         )
-                        .withTimeout(2), // parar DESPUES de 5 seg
+                        .withTimeout(5), // parar DESPUES de 5 seg
 
                         Commands.parallel(
                             m_IntakeSubsystem.stopIntakeCommand(),
                             m_ShooterSubsystem.stopIndexerAndFeederCommand()
                         ),
-                        new WaitCommand(1)
+                        new WaitCommand(.5)
                     )
                 )
             )
@@ -187,14 +186,14 @@ public class RobotContainer {
         // D-Pad RIGHT: Increment by 0.2 (Max limit of 1.0)
         m_joystickMechanismsController.povRight()
             .onTrue(Commands.runOnce(() -> {
-                TunableConstants.shooterSpeed = Math.min(1.0, TunableConstants.shooterSpeed + 0.2);
+                TunableConstants.shooterSpeed = Math.min(1.0, TunableConstants.shooterSpeed + 0.1);
                 SmartDashboard.putNumber("Tune/ShooterSpeed", TunableConstants.shooterSpeed);
             }));
 
         // D-Pad LEFT: Decrement by 0.2 (Min limit of 0.0)
         m_joystickMechanismsController.povLeft()
             .onTrue(Commands.runOnce(() -> {
-                TunableConstants.shooterSpeed = Math.max(0.0, TunableConstants.shooterSpeed - 0.2);
+                TunableConstants.shooterSpeed = Math.max(0.4, TunableConstants.shooterSpeed - 0.1);
                 SmartDashboard.putNumber("Tune/ShooterSpeed", TunableConstants.shooterSpeed);
             }));
         new Trigger(() -> m_ShooterSubsystem.isAtSpeed() && m_VisionSubsystem.hasTarget())

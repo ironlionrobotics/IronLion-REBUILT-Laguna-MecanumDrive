@@ -51,6 +51,26 @@ public final class Constants {
         public static final double kDistanceTolerance = 1.0; 
         
         public static final double kTargetTy = 0.0; 
+
+        // --- Tag IDs ---
+        public static final int kRedHubTag1 = 9;
+        public static final int kRedHubTag2 = 10;
+
+        public static final int kBlueHubTag1 = 25;
+        public static final int kBlueHubTag2 = 26;
+
+        public static final int kRedTrenchTagAllianceTOP_left = 7;
+        public static final int kRedTrenchTagCenterTOP_left = 6;
+        
+        public static final int kBlueTrenchTagAllianceTOP_right = 28;
+        public static final int kBlueTrenchTagCenterTOP_right = 17;
+
+        public static final int kRedTrenchTagAllianceBOTTOM_right    = 12;
+        public static final int kRedTrenchTagCenterBOTTOM_right = 1;
+        
+        public static final int kBlueTrenchTagAllianceBOTTOM_left = 22;
+        public static final int kBlueTrenchTagCenterBOTTOM_left = 23;
+
     }
     
     public static class TunableConstants {

@@ -45,7 +45,7 @@ public class DriveSubsystem extends SubsystemBase  {
     public static final PIDController m_backRightPIDController = new PIDController(.2, 0, 0);
 
     public static final Translation2d m_frontLeftLocation = new Translation2d(0.31, 0.21);
-    public static final Translation2d m_frontRightLocation = new Translation2d(0.31, -0.21);
+    public static final Translation2d m_frontRightLocation = new Translation2d(0.31, -0.21); 
     public static final Translation2d m_backLeftLocation = new Translation2d(-0.31, 0.21);
     public static final Translation2d m_backRightLocation = new Translation2d(-0.31, -0.21);
     
@@ -107,7 +107,7 @@ public class DriveSubsystem extends SubsystemBase  {
       double kStrafeMultiplier = 1.2;
       speeds.vyMetersPerSecond = speeds.vyMetersPerSecond * kStrafeMultiplier;
       MecanumDriveWheelSpeeds wheelSpeeds = m_kinematics.toWheelSpeeds(speeds);
-      wheelSpeeds.desaturate(3); 
+      wheelSpeeds.desaturate(4.5); 
       setSpeeds(wheelSpeeds);
     }
 
