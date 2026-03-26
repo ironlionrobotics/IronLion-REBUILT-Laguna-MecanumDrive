@@ -13,8 +13,6 @@ public class VisionSubsystem extends SubsystemBase {
         
         // Setup Video Streams for the Driver Dashboard
         CameraServer.startAutomaticCapture();
-        CameraServer.addAxisCamera("LeftCamera_Stream", "http://limelight-left.local:5800/stream.mjpg");
-        CameraServer.addAxisCamera("RightCamera_Stream", "http://limelight-right.local:5800/stream.mjpg");
     }
     
     // --- ODOMETRY UPDATES ARE NOW SAFELY HANDLED IN DRIVESUBSYSTEM ---

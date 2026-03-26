@@ -26,7 +26,7 @@
                 .smartCurrentLimit(40);
             
             climberConfig.softLimit
-                .forwardSoftLimitEnabled()
+                .forwardSoftLimitEnabled(false)
                 .forwardSoftLimit(60.0) 
                 .reverseSoftLimitEnabled(false)
                 .reverseSoftLimit(0.0); 

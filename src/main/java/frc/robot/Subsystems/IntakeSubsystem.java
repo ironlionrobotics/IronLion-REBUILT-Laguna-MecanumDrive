@@ -28,7 +28,7 @@ public class IntakeSubsystem extends SubsystemBase {
         intakeElevarConfig
           .idleMode(SparkBaseConfig.IdleMode.kCoast)
           .inverted(false)
-          .smartCurrentLimit(20);
+          .smartCurrentLimit(30);
 
       intakeElevarConfig.encoder.positionConversionFactor(15.0); 
 

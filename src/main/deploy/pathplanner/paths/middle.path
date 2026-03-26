@@ -33,13 +33,13 @@
   "pointTowardsZones": [],
   "eventMarkers": [
     {
-      "name": "Arm Down",
+      "name": "",
       "waypointRelativePos": 0.45061728395061534,
       "endWaypointRelativePos": 0.5626780626780603,
       "command": {
         "type": "named",
         "data": {
-          "name": "Stop Arm"
+          "name": null
         }
       }
     },

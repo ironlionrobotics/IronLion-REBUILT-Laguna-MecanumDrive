@@ -65,7 +65,7 @@ public final class Constants {
         public static final int kBlueTrenchTagAllianceTOP_right = 28;
         public static final int kBlueTrenchTagCenterTOP_right = 17;
 
-        public static final int kRedTrenchTagAllianceBOTTOM_right    = 12;
+        public static final int kRedTrenchTagAllianceBOTTOM_right = 12;
         public static final int kRedTrenchTagCenterBOTTOM_right = 1;
         
         public static final int kBlueTrenchTagAllianceBOTTOM_left = 22;
@@ -76,13 +76,13 @@ public final class Constants {
     public static class TunableConstants {
         public static double shooterSpeed = 1.0; 
         public static double intakeSpeed = 1.0;
-        public static double intakeReverseSpeed = -1.0 ;
+        public static double intakeReverseSpeed = -1.0;
         public static double beltIndexerSpeed = 1.0;
         public static double beltIndexerReverseSpeed = -1.0;
         public static double feederSpeed = 1.0;
         public static double feederReverseSpeed = -1.0;
-        public static double intakeElevarSpeed = 0.2;
-        public static double intakeElevarSpeedReverse = -0.8;
+        public static double intakeElevarSpeedReverse = 1.0;
+        public static double intakeElevarSpeed = -0.8;
 
         
         public static double shooterRPMTolerance = 100.0;
@@ -90,6 +90,7 @@ public final class Constants {
         public static void publishDefaults() {
             SmartDashboard.putNumber("Tune/ShooterSpeed", shooterSpeed);
             SmartDashboard.putNumber("Tune/IntakeSpeed", intakeSpeed);
+            SmartDashboard.putNumber("Tune/ShooterRPMTolerance", shooterRPMTolerance);
             
             SmartDashboard.putNumber("Tune/AlignP", VisionConstants.kAlignP);
             SmartDashboard.putNumber("Tune/AlignD", VisionConstants.kAlignD);
@@ -98,6 +99,7 @@ public final class Constants {
         public static void updateFromDashboard() {
             shooterSpeed = SmartDashboard.getNumber("Tune/ShooterSpeed", shooterSpeed);
             intakeSpeed = SmartDashboard.getNumber("Tune/IntakeSpeed", intakeSpeed);
+            shooterRPMTolerance = SmartDashboard.getNumber("Tune/ShooterRPMTolerance", shooterRPMTolerance);
         }
     }
 }

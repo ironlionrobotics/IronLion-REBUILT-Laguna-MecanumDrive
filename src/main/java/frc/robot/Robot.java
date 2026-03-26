@@ -3,6 +3,7 @@ package frc.robot;
 import com.pathplanner.lib.commands.FollowPathCommand;
 import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.Subsystems.DriveSubsystem;
@@ -52,7 +53,8 @@ public class Robot extends TimedRobot {
         if (m_autonomousCommand != null) {
             m_autonomousCommand.cancel();
         }
-
+        Timer timer = new Timer();
+        timer.start();
         LimelightHelpers.setPipelineIndex("LeftCamera", 0); // Pipeline 0 = April Tag Detection
         
         LimelightHelpers.setPipelineIndex("RightCamera", 1); // Pipeline 1 = Full-Color Driver View 
