@@ -99,14 +99,14 @@ public class RobotContainer {
         m_DriveSubsystem.setDefaultCommand(
                 new RunCommand(
                     () -> {
-                        double deadZone = 0.10; 
+                        double deadZone = 0.0; 
                         
-                        double avanzar = MathUtil.applyDeadband(m_playjoystickDriverController.getLeftX(), deadZone) * 1.25; 
+                        double avanzar = -m_playjoystickDriverController.getLeftX() * 2.95; 
                         
-                        double lateral = MathUtil.applyDeadband(-m_playjoystickDriverController.getLeftY(), deadZone) * 1.25;
+                        double lateral = -m_playjoystickDriverController.getLeftY() * 2.95;
                         // double lateral = m_strafeLimiter.calculate(rawLateral) * 1.25;
                          
-                        double rotate = MathUtil.applyDeadband(m_playjoystickDriverController.getRightX(), deadZone) * 1.25;
+                        double rotate = m_playjoystickDriverController.getRightX() * 2.95;
 
                         // --- NEW: ROBOT-ORIENTED MATH ---
                         edu.wpi.first.math.kinematics.ChassisSpeeds velocidades = 
@@ -196,53 +196,84 @@ public class RobotContainer {
 
   
         // reset pose
-        m_playjoystickDriverController.start()
-            .onTrue(Commands.runOnce(() -> m_DriveSubsystem.resetOdometry(new Pose2d())));
             
         // --- LIMELIGHT AUTO AIM ONLY ROTATE ---
-        m_playjoystickDriverController.leftBumper()
-            .whileTrue(
-                new AutoAlignCommand(
-                    m_DriveSubsystem, 
-                    m_VisionSubsystem, 
-                    () -> m_playjoystickDriverController.getRightX(),  
-                    () -> -m_playjoystickDriverController.getLeftY() 
-                )
-            );
+//        m_playjoystickDriverController.leftBumper()
+//            .whileTrue(
+//                new AutoAlignCommand(
+//                    m_DriveSubsystem, 
+//                    m_VisionSubsystem, 
+//                    () -> m_playjoystickDriverController.getRightX(),  
+//                    () -> -m_playjoystickDriverController.getLeftY() 
+//                )
+//            );
 
-        // --- CLIMBER ---
+        // --- INTAKE REVERSE (Left Trigger) ---
+        m_playjoystickDriverController.leftTrigger()
+            .onTrue(m_IntakeSubsystem.runIntakeReverseCommand())
+            .onFalse(m_IntakeSubsystem.stopIntakeCommand());
+
+        // --- INTAKE + SHOOTER COMBO (Right Trigger) ---
+        // Uses Commands.parallel to safely run both subsystems at once
+        m_playjoystickDriverController.rightTrigger()
+            .onTrue(Commands.parallel(
+                m_IntakeSubsystem.runIntakeCommand(),
+                m_ShooterSubsystem.runShooterCommand()
+            ))
+            .onFalse(Commands.parallel(
+                m_IntakeSubsystem.stopIntakeCommand(),
+                m_ShooterSubsystem.stopShooterCommand()
+            ));
+
+        // --- FEEDER & INDEXER NORMAL (A Button) ---
         m_playjoystickDriverController.a()
-            .onTrue(m_ClimberSubsystem.runClimberCommand())
-            .onFalse(m_ClimberSubsystem.stopClimberCommand());
+            .onTrue(m_ShooterSubsystem.runIndexerAndFeederCommand())
+            .onFalse(m_ShooterSubsystem.stopIndexerAndFeederCommand());
 
+        // --- FEEDER & INDEXER REVERSE (B Button) ---
+        m_playjoystickDriverController.b()
+            .onTrue(m_ShooterSubsystem.runIndexerAndFeederReverseCommand())
+            .onFalse(m_ShooterSubsystem.stopIndexerAndFeederCommand());
+
+        // --- SHOOTER REVERSE (Y Button) ---
         m_playjoystickDriverController.y()
-            .onTrue(m_ClimberSubsystem.runClimberReverseCommand())
-            .onFalse(m_ClimberSubsystem.stopClimberCommand());
+            .onTrue(m_ShooterSubsystem.runShooterReverseCommand())
+            .onFalse(m_ShooterSubsystem.stopShooterCommand());
 
-            // --- AIM BOT / AUTO SHOOT ---
-        m_playjoystickDriverController.leftTrigger()    
-            .whileTrue(new AutoShootCommand(m_ShooterSubsystem, m_VisionSubsystem));
+        // --- INTAKE ARM UP (Left Bumper) ---
+        m_playjoystickDriverController.leftBumper()
+            .onTrue(m_IntakeSubsystem.runIntakeArmCommand())
+            .onFalse(m_IntakeSubsystem.stopIntakeArmCommand());
 
-        m_joystickMechanismsController.povUp() //set shooter speed to 1.0
+        // --- INTAKE ARM DOWN (Right Bumper) ---
+        m_playjoystickDriverController.rightBumper()
+            .onTrue(m_IntakeSubsystem.runIntakeArmReverseCommand())
+            .onFalse(m_IntakeSubsystem.stopIntakeArmCommand());
+
+        m_playjoystickDriverController.povUp() //set shooter speed to 1.0
             .onTrue(Commands.runOnce(() -> {
-                TunableConstants.shooterSpeed = 1.0;
+                TunableConstants.shooterSpeed = Math.min(1.0, TunableConstants.shooterSpeed + 0.5);
+                SmartDashboard.putNumber("Tune/ShooterSpeed", TunableConstants.shooterSpeed);
+            }));
+        m_playjoystickDriverController.povDown() //set shooter speed to 1.0
+            .onTrue(Commands.runOnce(() -> {
+                TunableConstants.shooterSpeed = Math.max(0.2, TunableConstants.shooterSpeed - 0.5);
                 SmartDashboard.putNumber("Tune/ShooterSpeed", TunableConstants.shooterSpeed);
             }));
 
-        // D-Pad RIGHT: Increment by 0.2 (Max limit of 1.0)
-        m_joystickMechanismsController.povRight()
+        m_playjoystickDriverController.povRight()
             .onTrue(Commands.runOnce(() -> {
                 TunableConstants.shooterSpeed = Math.min(1.0, TunableConstants.shooterSpeed + 0.1);
                 SmartDashboard.putNumber("Tune/ShooterSpeed", TunableConstants.shooterSpeed);
             }));
 
         // D-Pad LEFT: Decrement by 0.2 (Min limit of 0.0)
-        m_joystickMechanismsController.povLeft()
+        m_playjoystickDriverController.povLeft()
             .onTrue(Commands.runOnce(() -> {
                 TunableConstants.shooterSpeed = Math.max(0.4, TunableConstants.shooterSpeed - 0.1);
                 SmartDashboard.putNumber("Tune/ShooterSpeed", TunableConstants.shooterSpeed);
             }));
-        new Trigger(() -> m_ShooterSubsystem.isAtSpeed() && m_VisionSubsystem.hasTarget())
+        new Trigger(() -> m_VisionSubsystem.hasTarget())
             .whileTrue(Commands.run(() -> m_playjoystickDriverController.getHID().setRumble(RumbleType.kBothRumble, 1.0)))
             .whileFalse(Commands.runOnce(() -> m_playjoystickDriverController.getHID().setRumble(RumbleType.kBothRumble, 0.0)));
     }

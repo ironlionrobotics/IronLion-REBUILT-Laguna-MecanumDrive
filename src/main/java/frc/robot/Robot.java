@@ -68,7 +68,5 @@ public class Robot extends TimedRobot {
         DriveSubsystem.m_rearLeft.getEncoder().setPosition(0);
         DriveSubsystem.m_frontRight.getEncoder().setPosition(0);
         DriveSubsystem.m_rearRight.getEncoder().setPosition(0);
-        DriveSubsystem.m_gyro.setYaw(0);
-        DriveSubsystem.m_gyro.reset();
     }       
 }

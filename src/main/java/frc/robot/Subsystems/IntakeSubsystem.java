@@ -30,7 +30,7 @@ public class IntakeSubsystem extends SubsystemBase {
           .inverted(false)
           .smartCurrentLimit(30);
 
-      intakeElevarConfig.encoder.positionConversionFactor(15.0); 
+      intakeElevarConfig.encoder.positionConversionFactor(1.0 /15.0); 
 
       m_NeoIntake.configure(intakeConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
       m_IntakeElevar.configure(intakeElevarConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);

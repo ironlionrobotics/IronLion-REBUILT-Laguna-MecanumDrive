@@ -34,7 +34,7 @@ public class ShooterSubsystem extends SubsystemBase {
             .kV(1.0 / 11352.0);
 
         shooterConfig.smartCurrentLimit(30); 
-        shooterConfig.encoder.velocityConversionFactor(2); 
+        shooterConfig.encoder.velocityConversionFactor(1.0 / 2.0); 
         
         m_shooterController = m_NEOshooter.getClosedLoopController();
         
@@ -76,6 +76,11 @@ public class ShooterSubsystem extends SubsystemBase {
         m_NEOshooter.set(TunableConstants.shooterSpeed);
     }
 
+    public void runShooterReverse() {
+        m_targetRPM = 0.0;
+        m_NEOshooter.set(-TunableConstants.shooterSpeed);
+    }
+
     public void stopShooter() {
         m_NEOshooter.stopMotor();
     }
@@ -115,14 +120,10 @@ public class ShooterSubsystem extends SubsystemBase {
         return this.runOnce(this::runShooter);
     }
     
-    public void setShooterRPM(double rpm) {
-        m_targetRPM = rpm; 
-        m_shooterController.setSetpoint(rpm, com.revrobotics.spark.SparkBase.ControlType.kVelocity);
+    public Command runShooterReverseCommand() {
+        return this.runOnce(this::runShooterReverse);
     }
-
-    public Command setShooterRPMCommand(double RPM) {
-        return this.run(() -> setShooterRPM(RPM));
-    }
+    
 
     @Override
     public void periodic() {

@@ -104,8 +104,6 @@ public class DriveSubsystem extends SubsystemBase  {
     }
 
     public void driveRobotRelative(ChassisSpeeds speeds) {
-      double kStrafeMultiplier = 1.2;
-      speeds.vyMetersPerSecond = speeds.vyMetersPerSecond * kStrafeMultiplier;
       MecanumDriveWheelSpeeds wheelSpeeds = m_kinematics.toWheelSpeeds(speeds);
       wheelSpeeds.desaturate(4.15); 
       setSpeeds(wheelSpeeds);
@@ -193,18 +191,18 @@ public class DriveSubsystem extends SubsystemBase  {
     
     public static void motorConfig() {
         SparkMaxConfig commmConfig = new SparkMaxConfig();
-        commmConfig.idleMode(SparkBaseConfig.IdleMode.kBrake)
+        commmConfig.idleMode(SparkBaseConfig.IdleMode.kCoast)
           .smartCurrentLimit(40)
           .encoder
             .positionConversionFactor(DriveConstants.conversionFactor)
             .velocityConversionFactor(DriveConstants.conversionFactor / 60.0); 
         
-        SparkBaseConfig leftConfig = new SparkMaxConfig().idleMode(SparkMaxConfig.IdleMode.kBrake);
+        SparkBaseConfig leftConfig = new SparkMaxConfig().idleMode(SparkMaxConfig.IdleMode.kCoast);
         leftConfig
           .apply(commmConfig)
           .inverted(false);
         
-        SparkBaseConfig rightConfig = new SparkMaxConfig().idleMode(SparkMaxConfig.IdleMode.kBrake);
+        SparkBaseConfig rightConfig = new SparkMaxConfig().idleMode(SparkMaxConfig.IdleMode.kCoast);
         rightConfig
           .apply(commmConfig)
           .inverted(true);
