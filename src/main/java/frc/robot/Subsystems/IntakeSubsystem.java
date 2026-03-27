@@ -50,14 +50,14 @@ public class IntakeSubsystem extends SubsystemBase {
     }
 
     public Command runIntakeCommand() {
-        return this.run(this::runIntake);
+        return this.runOnce(this::runIntake);
       }
 
     public Command runIntakeReverseCommand() {
-        return this.run(this::runIntakeReverse);
+        return this.runOnce(this::runIntakeReverse);
       }
     public Command stopIntakeCommand() {
-        return this.run(this::stopIntake);
+        return this.runOnce(this::stopIntake);
       }
 
     public void runIntakeArm() {

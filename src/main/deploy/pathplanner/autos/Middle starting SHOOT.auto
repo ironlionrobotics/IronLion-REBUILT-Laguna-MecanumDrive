@@ -19,7 +19,7 @@
       ]
     }
   },
-  "resetOdom": false,
+  "resetOdom": true,
   "folder": "middle paths ",
   "choreoAuto": false
 }

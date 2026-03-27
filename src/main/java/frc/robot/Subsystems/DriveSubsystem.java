@@ -114,7 +114,7 @@ public class DriveSubsystem extends SubsystemBase  {
             m_frontLeft.getEncoder().getPosition(),
             m_frontRight.getEncoder().getPosition(),
             m_rearLeft.getEncoder().getPosition(),
-            m_rearRight.getEncoder().getPosition() 
+            m_rearRight.getEncoder().getPosition()
           );
     }
 

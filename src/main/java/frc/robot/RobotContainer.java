@@ -19,7 +19,6 @@ import frc.robot.Commands.AutoAlignCommand;
 import frc.robot.Commands.AutoShootCommand;
 import frc.robot.Constants.DriveConstants;
 import frc.robot.Constants.TunableConstants;
-import frc.robot.Subsystems.ClimberSubsystem;
 import frc.robot.Subsystems.DriveSubsystem;
 import frc.robot.Subsystems.IntakeSubsystem;
 import frc.robot.Subsystems.ShooterSubsystem;
@@ -30,7 +29,6 @@ public class RobotContainer {
     private final VisionSubsystem m_VisionSubsystem = new VisionSubsystem(m_DriveSubsystem);
     private final IntakeSubsystem m_IntakeSubsystem = new IntakeSubsystem();
     private final ShooterSubsystem m_ShooterSubsystem = new ShooterSubsystem();
-    private final ClimberSubsystem m_ClimberSubsystem = new ClimberSubsystem();
     
     private final CommandXboxController m_joystickMechanismsController = new CommandXboxController(DriveConstants.kJoystickPort);
     private final CommandXboxController m_playjoystickDriverController = new CommandXboxController(DriveConstants.kPlayJoystick_Cool_Port);

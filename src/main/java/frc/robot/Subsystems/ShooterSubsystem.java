@@ -71,13 +71,11 @@ public class ShooterSubsystem extends SubsystemBase {
     }
 
     public void runShooter() {
-        m_targetRPM = 0.0;
 
         m_NEOshooter.set(TunableConstants.shooterSpeed);
     }
 
     public void runShooterReverse() {
-        m_targetRPM = 0.0;
         m_NEOshooter.set(-TunableConstants.shooterSpeed);
     }
 
@@ -101,7 +99,7 @@ public class ShooterSubsystem extends SubsystemBase {
     }
 
     public Command stopShooterCommand() {
-        return this.run(this::stopShooter);
+        return this.runOnce(this::stopShooter);
     }
 
     public Command runIndexerAndFeederCommand() {
