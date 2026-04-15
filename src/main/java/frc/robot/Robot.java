@@ -20,13 +20,24 @@ public class Robot extends TimedRobot {
     @Override
     public void robotPeriodic() {
         CommandScheduler.getInstance().run();
-        Constants.TunableConstants.updateFromDashboard();
+        
+        // Update constants from Dashboard tuning
+        Constants.Telemetry.updateConstantsFromDashboard();
+        
+        // Publish system health to Dashboard
+        if (m_robotContainer != null) {
+            Constants.Telemetry.updateSubsystemTelemetry(
+                m_robotContainer.getDrive(),
+                m_robotContainer.getIntake(),
+                m_robotContainer.getShooter()
+            );
+        }
     }
     
     @Override
     public void robotInit() {
         m_robotContainer = new RobotContainer();
-        CameraServer.startAutomaticCapture(); // Starts USB Camera
+        CameraServer.startAutomaticCapture(); 
         resetEncoders();
         
         CommandScheduler.getInstance().schedule(FollowPathCommand.warmupCommand());
@@ -34,11 +45,7 @@ public class Robot extends TimedRobot {
     
     @Override
     public void autonomousInit() {
-        LimelightHelpers.setPipelineIndex("LeftCamera", 0);
-        LimelightHelpers.setPipelineIndex("RightCamera", 0);
-
         resetEncoders();
-        
         m_autonomousCommand = m_robotContainer.getAutonomousCommand();  
         if (m_autonomousCommand != null) {
             CommandScheduler.getInstance().schedule(m_autonomousCommand);
@@ -55,9 +62,6 @@ public class Robot extends TimedRobot {
         }
         Timer timer = new Timer();
         timer.start();
-        LimelightHelpers.setPipelineIndex("LeftCamera", 0); // Pipeline 0 = April Tag Detection
-        
-        LimelightHelpers.setPipelineIndex("RightCamera", 1); // Pipeline 1 = Full-Color Driver View 
     }
 
     @Override

@@ -2,11 +2,13 @@ package frc.robot;
 
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import frc.robot.Subsystems.DriveSubsystem;
+import frc.robot.Subsystems.IntakeSubsystem;
+import frc.robot.Subsystems.ShooterSubsystem;
 
 public final class Constants {
     
     public static class DriveConstants {
-        // Puertos CAN de los motores
         public static final int kFrontLeftMotorPort = 4;
         public static final int kFrontRightMotorPort = 2;
         public static final int kRearLeftMotorPort = 1;
@@ -20,57 +22,23 @@ public final class Constants {
         public static final int kNeoShooterPort = 11; 
         public static final int kNeoClimberPort = 7; 
 
-        // Puertos USB del control
-        public static final int kJoystickPort = 0;
-        public static final int kPlayJoystick_Cool_Port = 2;
+        public static final int kDriverControllerPort = 0; // Unified single controller
         
-        // Matemáticas Físicas
         public static final double kWheelDiameterMeters = Units.inchesToMeters(4); 
         public static final double kWheelCircumferenceMeters = kWheelDiameterMeters * Math.PI;
         
         public static final double gearRatio = 5.95; 
         public static final double conversionFactor = kWheelCircumferenceMeters / gearRatio;
         
-        // --- SysId / FeedForward Realistas (NEO + Mecanum) ---
         public static final double kS = 0.2; 
         public static final double kV = 2.8; 
         public static final double kA = 0.3; 
     }
 
-    public static final class VisionConstants {
-        // --- Rotation (tx) Constants ---
-        public static final double kAlignP = 0.015; 
-        public static final double kAlignI = 0.0;
-        public static final double kAlignD = 0.001; 
-        public static final double kAlignTolerance = 1.0; 
-        
-        // --- Distance (ty) Constants ---
-        public static final double kDistanceP = 0.1; 
-        public static final double kDistanceI = 0.0;
-        public static final double kDistanceD = 0.0;
-        public static final double kDistanceTolerance = 1.0; 
-        
-        public static final double kTargetTy = 0.0; 
-
-        // --- Tag IDs ---
-        public static final int kRedHubTag1 = 9;
-        public static final int kRedHubTag2 = 10;
-
-        public static final int kBlueHubTag1 = 25;
-        public static final int kBlueHubTag2 = 26;
-
-        public static final int kRedTrenchTagAllianceTOP_left = 7;
-        public static final int kRedTrenchTagCenterTOP_left = 6;
-        
-        public static final int kBlueTrenchTagAllianceTOP_right = 28;
-        public static final int kBlueTrenchTagCenterTOP_right = 17;
-
-        public static final int kRedTrenchTagAllianceBOTTOM_right = 12;
-        public static final int kRedTrenchTagCenterBOTTOM_right = 1;
-        
-        public static final int kBlueTrenchTagAllianceBOTTOM_left = 22;
-        public static final int kBlueTrenchTagCenterBOTTOM_left = 23;
-
+    // --- NEW: Safety Cutoffs ---
+    public static final class SafetyConstants {
+        public static final double kMaxMotorTempCelsius = 60.0;
+        public static final double kMaxMotorCurrentAmps = 40.0;
     }
     
     public static class TunableConstants {
@@ -83,23 +51,46 @@ public final class Constants {
         public static double feederReverseSpeed = -1.0;
         public static double intakeElevarSpeedReverse = 1.0;
         public static double intakeElevarSpeed = -0.8;
+    }
 
-        
-        public static double shooterRPMTolerance = 100.0;
-
+    // --- NEW: Centralized Telemetry ---
+    public static class Telemetry {
         public static void publishDefaults() {
-            SmartDashboard.putNumber("Tune/ShooterSpeed", shooterSpeed);
-            SmartDashboard.putNumber("Tune/IntakeSpeed", intakeSpeed);
-            SmartDashboard.putNumber("Tune/ShooterRPMTolerance", shooterRPMTolerance);
-            
-            SmartDashboard.putNumber("Tune/AlignP", VisionConstants.kAlignP);
-            SmartDashboard.putNumber("Tune/AlignD", VisionConstants.kAlignD);
+            SmartDashboard.putNumber("Tune/ShooterSpeed", TunableConstants.shooterSpeed);
+            SmartDashboard.putNumber("Tune/IntakeSpeed", TunableConstants.intakeSpeed);
         }
 
-        public static void updateFromDashboard() {
-            shooterSpeed = SmartDashboard.getNumber("Tune/ShooterSpeed", shooterSpeed);
-            intakeSpeed = SmartDashboard.getNumber("Tune/IntakeSpeed", intakeSpeed);
-            shooterRPMTolerance = SmartDashboard.getNumber("Tune/ShooterRPMTolerance", shooterRPMTolerance);
+        public static void updateConstantsFromDashboard() {
+            TunableConstants.shooterSpeed = SmartDashboard.getNumber("Tune/ShooterSpeed", TunableConstants.shooterSpeed);
+            TunableConstants.intakeSpeed = SmartDashboard.getNumber("Tune/IntakeSpeed", TunableConstants.intakeSpeed);
         }
+
+        public static void updateSubsystemTelemetry(DriveSubsystem drive, IntakeSubsystem intake, ShooterSubsystem shooter) {
+            // Intake
+            SmartDashboard.putNumber("Intake/Arm Angle", intake.getArmPosition());
+            SmartDashboard.putNumber("Intake/Arm Temp (C)", intake.getArmTemp());
+            SmartDashboard.putNumber("Intake/Motor Temp (C)", intake.getIntakeTemp());
+            
+            // Shooter
+            SmartDashboard.putNumber("Shooter/Raw Power", shooter.getAppliedOutput());
+            SmartDashboard.putNumber("Shooter/Temp (C)", shooter.getShooterTemp());
+            SmartDashboard.putNumber("Shooter/Current (A)", shooter.getShooterCurrent());
+
+            // Drive
+            SmartDashboard.putNumber("Drive/Heading", drive.getHeading().getDegrees());
+        }
+    }
+    public static final class VisionConstants {
+        // Turning PID
+        public static final double kAlignP = 0.05; 
+        public static final double kAlignD = 0.001; 
+        
+        // Distance PID
+        public static final double kDistanceP = 0.1; 
+        
+        // The "Distance" you want to maintain. 
+        // 0.0 means keep the tag perfectly vertically centered in the camera.
+        // Change to a negative number (e.g., -5.0) to stay further away.
+        public static final double kTargetTy = -0.5; 
     }
 }

@@ -28,7 +28,6 @@ import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.DriveConstants;
-import frc.robot.LimelightHelpers;
 
 public class DriveSubsystem extends SubsystemBase  {
   
@@ -59,7 +58,7 @@ public class DriveSubsystem extends SubsystemBase  {
       );
           
     public edu.wpi.first.math.geometry.Rotation2d getHeading() {
-      return m_gyro.getRotation2d(); //todo: unary minus removed 
+      return m_gyro.getRotation2d().unaryMinus(); 
     }
     
     public final MecanumDrivePoseEstimator m_poseEstimator =
@@ -75,7 +74,6 @@ public class DriveSubsystem extends SubsystemBase  {
     public DriveSubsystem() {
         motorConfig(); 
         SmartDashboard.putData("Field", m_field);
-        
     }
 
     public void resetOdometry(Pose2d pose) {
@@ -90,18 +88,13 @@ public class DriveSubsystem extends SubsystemBase  {
     public void updateOdometry() { 
         m_poseEstimator.update(getHeading(), getCurrentDistances());
     }
-
-    public void addVisionMeasurement(Pose2d visionRobotPoseMeters, double timestampSeconds) {
-        m_poseEstimator.addVisionMeasurement(visionRobotPoseMeters, timestampSeconds);
+    public void zeroHeading() {
+        // Tells the Pigeon2 that its current physical orientation is now 0 degrees
+        m_gyro.setYaw(0);
     }
 
-    public Pose2d getPose() {
-      return m_poseEstimator.getEstimatedPosition();
-    }
-    
-    public void resetPose(Pose2d pose) {
-        m_poseEstimator.resetPose(pose);
-    }
+    public Pose2d getPose() { return m_poseEstimator.getEstimatedPosition(); }
+    public void resetPose(Pose2d pose) { m_poseEstimator.resetPose(pose); }
 
     public void driveRobotRelative(ChassisSpeeds speeds) {
       MecanumDriveWheelSpeeds wheelSpeeds = m_kinematics.toWheelSpeeds(speeds);
@@ -125,15 +118,6 @@ public class DriveSubsystem extends SubsystemBase  {
             m_rearLeft.getEncoder().getVelocity(),
             m_rearRight.getEncoder().getVelocity()
         );
-    }
-
-    public double getAverageEncoderDistance() {
-        double frontLeftRotations = m_frontLeft.getEncoder().getPosition();
-        double frontRightRotations = m_frontRight.getEncoder().getPosition();
-        double rearLeftRotations = m_rearLeft.getEncoder().getPosition();
-        double rearRightRotations = m_rearRight.getEncoder().getPosition();
-
-        return (frontLeftRotations + frontRightRotations + rearLeftRotations + rearRightRotations) / 4.0;
     }
 
     public void setSpeeds(MecanumDriveWheelSpeeds speeds) {
@@ -198,14 +182,10 @@ public class DriveSubsystem extends SubsystemBase  {
             .velocityConversionFactor(DriveConstants.conversionFactor / 60.0); 
         
         SparkBaseConfig leftConfig = new SparkMaxConfig().idleMode(SparkMaxConfig.IdleMode.kCoast);
-        leftConfig
-          .apply(commmConfig)
-          .inverted(false);
+        leftConfig.apply(commmConfig).inverted(false);
         
         SparkBaseConfig rightConfig = new SparkMaxConfig().idleMode(SparkMaxConfig.IdleMode.kCoast);
-        rightConfig
-          .apply(commmConfig)
-          .inverted(true);
+        rightConfig.apply(commmConfig).inverted(true);
 
         m_frontLeft.configure(leftConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
         m_rearLeft.configure(leftConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);        
@@ -213,47 +193,9 @@ public class DriveSubsystem extends SubsystemBase  {
         m_rearRight.configure(rightConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
     }
     
-  public void updateVisionOdometry() {
-          // Array of all Limelights actively tracking AprilTags
-          String[] cameraNames = {"LeftCamera", "RightCamera"};
-  
-          for (String camera : cameraNames) {
-            LimelightHelpers.SetRobotOrientation(
-              camera, 
-              getHeading().getDegrees(), 
-              0, 0, 0, 0, 0 
-            );
-            LimelightHelpers.PoseEstimate limelightMeasurement = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(camera);
-          
-            if (limelightMeasurement != null && limelightMeasurement.tagCount > 0) {
-                double xyStds = 0.5; 
-                double degStds = 9999999; // Never trust Limelight rotation, trust the Pigeon Gyro!
-            
-                if (limelightMeasurement.tagCount >= 2) {
-                    xyStds = 0.1; // High trust: Multiple tags cancel out ambiguity
-                  } else if (limelightMeasurement.tagCount == 1 && limelightMeasurement.avgTagDist < 2.0) {
-                      xyStds = 0.3; // Medium trust: 1 tag, but it's close
-                  } else {
-                      xyStds = 1.0; // Low trust: 1 tag, far away
-                  }
-                
-                  // Reject extremely noisy single-tag data (optional but highly recommended for Auto)
-                  if (limelightMeasurement.tagCount == 1 && limelightMeasurement.rawFiducials.length > 0) {
-                      if (limelightMeasurement.rawFiducials[0].ambiguity > 0.7) {
-                          continue; // Skip this camera's update if the tag is highly ambiguous
-                      }
-                  }
-                
-                  m_poseEstimator.setVisionMeasurementStdDevs(VecBuilder.fill(xyStds, xyStds, degStds));
-                  m_poseEstimator.addVisionMeasurement(limelightMeasurement.pose, limelightMeasurement.timestampSeconds);
-              }
-          }
-      }
   @Override
   public void periodic() {
       updateOdometry(); 
-      updateVisionOdometry();
-
       m_field.setRobotPose(getPose());
   }
 }
